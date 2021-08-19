@@ -41,13 +41,13 @@ function convertFieldNames(data) {
     arweaveId,
   } = data;
   /* eslint-enable camelcase */
+  const hashes = [];
+  if (ipfsHash) hashes.push(`ipfs://${ipfsHash}`);
+  if (arweaveId) hashes.push(`ar://${arweaveId}`);
   return {
     type: 'Article',
-    hashes: [
-      `ipfs://${ipfsHash}`,
-      `ar://${arweaveId}`,
-    ],
     name,
+    hashes,
     description,
     datePublished,
     url,
