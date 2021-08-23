@@ -10,6 +10,8 @@ const {
 } = require('./util/iscn');
 const { getAccountBalance } = require('./util/iscnQuery');
 
+const DEFAULT_OUTPUT_PATH = 'output.csv';
+
 function convertFieldNames(data) {
   /* eslint-disable camelcase */
   const {
@@ -84,9 +86,16 @@ async function readCsv(path = 'list.csv') {
   return data;
 }
 
-function writeCsv(data, path = 'output.csv') {
+function checkIfCsvExists(path = DEFAULT_OUTPUT_PATH) {
+  return fs.existsSync(path);
+}
+
+function writeCsv(data, path = DEFAULT_OUTPUT_PATH) {
   const d = csvStringify(data);
-  fs.writeFileSync(path, d, 'utf8');
+  fs.writeFileSync(path, d, {
+    encoding: 'utf8',
+    flag: 'a+',
+  });
 }
 
 async function estimateISCNFee(data) {
@@ -109,6 +118,7 @@ async function estimateISCNFee(data) {
 async function handleISCNTx(data) {
   const dataFields = Object.keys(data[0]);
   const result = [[...dataFields, 'txHash', 'iscnId']];
+  if (!checkIfCsvExists()) writeCsv(result);
   for (let i = 0; i < data.length; i += 1) {
     /* eslint-disable no-await-in-loop */
     try {
@@ -118,7 +128,9 @@ async function handleISCNTx(data) {
       const { txHash, iscnId } = res;
       const { name } = payload;
       console.log(`${name} ${txHash} ${iscnId}`);
-      result.push(values.concat([txHash, iscnId]));
+      const entry = values.concat([txHash, iscnId]);
+      writeCsv([entry]);
+      result.push(entry);
     } catch (err) {
       console.error(err);
     }
@@ -140,8 +152,7 @@ async function run() {
     console.error(`low account balance: ${balance.toFixed()}`);
     return;
   }
-  const result = await handleISCNTx(data);
-  writeCsv(result);
+  await handleISCNTx(data);
 }
 
 run();
