@@ -10,70 +10,6 @@ const {
 } = require('./util/iscn');
 const { getAccountBalance } = require('./util/iscnQuery');
 
-function convertFieldNames(data) {
-  /* eslint-disable camelcase */
-  const {
-    name,
-    description,
-    datePublished,
-    url,
-    author,
-    usageInfo,
-    keywords,
-    articleBody,
-    backstory,
-    wordCount,
-    about,
-    abstract,
-    accessMode,
-    acquireLicensePage,
-    copyrightHolder,
-    copyrightNotice,
-    copyrightYear,
-    creativeWorkStatus,
-    creator,
-    encodingFormat,
-    headline,
-    license,
-    locationCreated,
-    text,
-    ipfsHash,
-    arweaveId,
-  } = data;
-  /* eslint-enable camelcase */
-  const hashes = [];
-  if (ipfsHash) hashes.push(`ipfs://${ipfsHash}`);
-  if (arweaveId) hashes.push(`ar://${arweaveId}`);
-  return {
-    type: 'Article',
-    name,
-    hashes,
-    description,
-    datePublished,
-    url,
-    author,
-    usageInfo,
-    keywords,
-    articleBody,
-    backstory,
-    wordCount,
-    about,
-    abstract,
-    accessMode,
-    acquireLicensePage,
-    copyrightHolder,
-    copyrightNotice,
-    copyrightYear,
-    creativeWorkStatus,
-    creator,
-    encodingFormat,
-    headline,
-    license,
-    locationCreated,
-    text,
-  };
-}
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -86,7 +22,48 @@ async function readCsv(path = 'list.csv') {
 
 function writeCsv(data, path = 'output.csv') {
   const d = csvStringify(data);
-  fs.writeFileSync(path, d, 'utf8');
+  fs.writeFileSync(path, d, {
+      encoding: "utf8",
+      flag: "a+"
+    });
+  
+}
+
+function convertFieldNames(data) {
+  /* eslint-disable camelcase */
+  const {
+    hash,
+    title,
+    link,
+    author,
+    subtitle,
+    image_href,
+    summary,
+    enclosure_length,
+    enclosure_type,
+    pubDate,
+    duration,
+    showname,
+    iscnId: iscn_id,
+  } = data;
+  /* eslint-enable camelcase */
+  return {
+    type: 'Episode',
+    hash: `ipfs://${hash}`,
+    name: title,
+    headline: title,
+    url: link,
+    author,
+    abstract: subtitle,
+    thumbnailUrl: image_href,
+    descrption: summary,
+    size: enclosure_length,
+    encodingFormat: enclosure_type,
+    datePublished: pubDate,
+    duration,
+    partOfSeries: showname,
+    iscnId: iscn_id,
+  };
 }
 
 async function estimateISCNFee(data) {
@@ -108,7 +85,11 @@ async function estimateISCNFee(data) {
 
 async function handleISCNTx(data) {
   const dataFields = Object.keys(data[0]);
-  const result = [[...dataFields, 'txHash', 'iscnId']];
+  //const result = [[...dataFields, 'txHash', 'iscnId']];  
+  const fieldname = [[...dataFields, 'txHash', 'iscnId']];
+  result = [[]];
+
+  writeCsv(fieldname, path = 'output.csv')
   for (let i = 0; i < data.length; i += 1) {
     /* eslint-disable no-await-in-loop */
     try {
@@ -118,7 +99,10 @@ async function handleISCNTx(data) {
       const { txHash, iscnId } = res;
       const { name } = payload;
       console.log(`${name} ${txHash} ${iscnId}`);
-      result.push(values.concat([txHash, iscnId]));
+      //result.push(values.concat([txHash, iscnId]));
+      result[0]= values.concat([txHash, iscnId]);
+      writeCsv(result, path = 'output.csv')
+
     } catch (err) {
       console.error(err);
     }
@@ -141,7 +125,7 @@ async function run() {
     return;
   }
   const result = await handleISCNTx(data);
-  writeCsv(result);
+//  writeCsv(result);
 }
 
 run();
