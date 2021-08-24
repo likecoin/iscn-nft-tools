@@ -115,20 +115,32 @@ async function estimateISCNFee(data) {
   return result.shiftedBy(-9).toFixed();
 }
 
-async function handleISCNTx(data) {
+async function handleISCNTx(data, isUpdate = false) {
   const dataFields = Object.keys(data[0]);
-  const result = [[...dataFields, 'txHash', 'iscnId']];
+  if (!dataFields.includes('txHash')) {
+    dataFields.push('txHash');
+  }
+  if (!dataFields.includes('iscnId')) {
+    dataFields.push('iscnId');
+  }
+  const result = [dataFields];
   if (!checkIfCsvExists()) writeCsv(result);
   for (let i = 0; i < data.length; i += 1) {
     /* eslint-disable no-await-in-loop */
     try {
-      const values = dataFields.map((field) => data[i][field]);
       const payload = convertFieldNames(data[i]);
-      const res = await signISCNTx(payload);
-      const { txHash, iscnId } = res;
+
+      let { iscnId, txHash } = payload;
       const { name } = payload;
+      if (!iscnId || isUpdate) {
+        const res = await signISCNTx(payload);
+        ({ iscnId, txHash } = res);
+      }
       console.log(`${name} ${txHash} ${iscnId}`);
-      const entry = values.concat([txHash, iscnId]);
+      const newData = { ...data };
+      newData[i].txHash = txHash;
+      newData[i].iscnId = iscnId;
+      const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
     } catch (err) {
@@ -143,6 +155,7 @@ async function handleISCNTx(data) {
 async function run() {
   const args = process.argv.slice(2);
   const data = await readCsv(args[0]);
+  const isUpdate = args.includes('--update');
   console.log(`size: ${data.length}`);
   const iscnFee = await estimateISCNFee(data);
   console.log(`Fee: ${iscnFee} LIKE`);
@@ -152,7 +165,7 @@ async function run() {
     console.error(`low account balance: ${balance.toFixed()}`);
     return;
   }
-  await handleISCNTx(data);
+  await handleISCNTx(data, isUpdate);
 }
 
 run();
