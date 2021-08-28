@@ -22,6 +22,7 @@ const registry = new Registry([
 
 let signingWallet;
 let signingAccounts;
+let signingClient;
 
 async function getWallet() {
   if (!signingWallet) {
@@ -147,16 +148,23 @@ async function estimateISCNTxFee(tx, {
   return feeAmount;
 }
 
+async function getSigningClient(wallet) {
+  if (!signingClient) {
+    signingClient = await SigningStargateClient.connectWithSigner(
+      ISCN_RPC_URL,
+      wallet,
+      { registry },
+    );
+  }
+  return signingClient;
+}
+
 async function signISCNTx(inputPayload) {
   const { wallet, account } = await getWallet();
   const { iscnId, ...payload } = inputPayload;
   const isUpdate = !!iscnId;
   const record = formatISCNPayload(payload);
-  const client = await SigningStargateClient.connectWithSigner(
-    ISCN_RPC_URL,
-    wallet,
-    { registry },
-  );
+  const client = await getSigningClient(wallet);
 
   const value = {
     from: account.address,
