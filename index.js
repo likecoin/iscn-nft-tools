@@ -133,8 +133,16 @@ async function handleISCNTx(data, isUpdate = false) {
       let { iscnId, txHash } = payload;
       const { name } = payload;
       if (!iscnId || isUpdate) {
-        const res = await signISCNTx(payload);
-        ({ iscnId, txHash } = res);
+        try {
+          const res = await signISCNTx(payload);
+          ({ iscnId, txHash } = res);
+        } catch (err) {
+          console.error(err);
+          console.error(`Retrying ${name} in 15s`);
+          await sleep(15000);
+          const res = await signISCNTx(payload);
+          ({ iscnId, txHash } = res);
+        }
       }
       console.log(`${name} ${txHash} ${iscnId}`);
       const newData = { ...data };
@@ -143,6 +151,7 @@ async function handleISCNTx(data, isUpdate = false) {
       const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
+      await sleep(1000);
     } catch (err) {
       console.error(err);
     }
