@@ -129,21 +129,19 @@ async function handleISCNTx(data, isUpdate = false) {
     /* eslint-disable no-await-in-loop */
     try {
       const payload = convertFieldNames(data[i]);
-      let newSign = false;
       let { iscnId, txHash } = payload;
       const { name } = payload;
-      if (!iscnId || isUpdate) {
+      const shouldSign = !iscnId || isUpdate;
+      if (shouldSign) {
         try {
           const res = await signISCNTx(payload);
           ({ iscnId, txHash } = res);
-          newSign = true;
         } catch (err) {
           console.error(err);
           console.error(`Retrying ${name} in 15s`);
           await sleep(15000);
           const res = await signISCNTx(payload);
           ({ iscnId, txHash } = res);
-          newSign = true;
         }
       }
       console.log(`${name} ${txHash} ${iscnId}`);
@@ -153,7 +151,7 @@ async function handleISCNTx(data, isUpdate = false) {
       const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
-      if (newSign) { await sleep(1000); }
+      if (shouldSign) { await sleep(1000); }
     } catch (err) {
       console.error(err);
     }
