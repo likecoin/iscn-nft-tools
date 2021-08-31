@@ -61,8 +61,8 @@ function estimateISCNTxGas(dataObj) {
     .plus(GAS_ESTIMATOR_BUFFER);
   const gasFee = gas.multipliedBy(DEFAULT_GAS_PRICE_NUMBER);
   return {
-    amount: [{ amount: gasFee.toFixed(), denom: 'nanolike' }],
-    gas: gas.toFixed(),
+    amount: [{ amount: gasFee.toFixed(0, 0), denom: 'nanolike' }],
+    gas: gas.toFixed(0, 0),
   };
 }
 
