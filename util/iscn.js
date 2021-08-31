@@ -6,12 +6,16 @@ const {
   assertIsBroadcastTxSuccess,
   SigningStargateClient,
 } = require('@cosmjs/stargate');
+const jsonStringify = require('fast-json-stable-stringify');
+const BigNumber = require('bignumber.js');
 
 const { ISCN_RPC_URL, COSMOS_MNEMONIC } = require('../config/config');
 const { queryFeePerByte } = require('./iscnQuery');
 
 const ISCN_REGISTRY_NAME = 'likecoin-chain';
-const DEFAULT_ISCN_GAS = 1000000;
+const GAS_ESTIMATOR_BUFFER = 50000;
+const GAS_ESTIMATOR_SLOP = 3.58;
+const GAS_ESTIMATOR_INTERCEPT = 99443.87;
 const DEFAULT_GAS_PRICE_NUMBER = 10;
 
 const registry = new Registry([
@@ -49,10 +53,16 @@ function parseISCNTxInfoFromTxSuccess(tx) {
   };
 }
 
-function estimateISCNTxGas() {
+function estimateISCNTxGas(dataObj) {
+  const bytes = Buffer.from(jsonStringify(dataObj), 'utf-8');
+  const gas = new BigNumber(bytes.length)
+    .multipliedBy(GAS_ESTIMATOR_SLOP)
+    .plus(GAS_ESTIMATOR_INTERCEPT)
+    .plus(GAS_ESTIMATOR_BUFFER);
+  const gasFee = gas.multipliedBy(DEFAULT_GAS_PRICE_NUMBER);
   return {
-    amount: [{ amount: (DEFAULT_GAS_PRICE_NUMBER * DEFAULT_ISCN_GAS).toFixed(), denom: 'nanolike' }],
-    gas: DEFAULT_ISCN_GAS.toFixed(),
+    amount: [{ amount: gasFee.toFixed(), denom: 'nanolike' }],
+    gas: gas.toFixed(),
   };
 }
 
@@ -175,7 +185,7 @@ async function signISCNTx(inputPayload) {
     typeUrl: isUpdate ? '/likechain.iscn.MsgUpdateIscnRecord' : '/likechain.iscn.MsgCreateIscnRecord',
     value,
   };
-  const fee = await estimateISCNTxGas();
+  const fee = await estimateISCNTxGas(message);
   const response = await client.signAndBroadcast(account.address, [message], fee);
   assertIsBroadcastTxSuccess(response);
   return parseISCNTxInfoFromTxSuccess(response);

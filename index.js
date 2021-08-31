@@ -99,7 +99,7 @@ function writeCsv(data, path = DEFAULT_OUTPUT_PATH) {
 }
 
 async function estimateISCNFee(data) {
-  const gasFee = estimateISCNTxGas().amount[0].amount;
+  const gasFee = estimateISCNTxGas(data).amount[0].amount;
   let result = new BigNumber(gasFee);
   for (let i = 0; i < data.length; i += 1) {
     /* eslint-disable no-await-in-loop */
