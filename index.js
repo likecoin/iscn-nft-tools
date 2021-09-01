@@ -128,6 +128,8 @@ async function handleISCNTx(data, isUpdate = false) {
   const result = [dataFields];
   if (!checkIfCsvExists()) writeCsv(result);
   const signerData = await getSignerData();
+  const { accountNumber, chainId } = signerData;
+  let { sequence } = signerData;
   for (let i = 0; i < data.length; i += 1) {
     /* eslint-disable no-await-in-loop */
     try {
@@ -137,13 +139,13 @@ async function handleISCNTx(data, isUpdate = false) {
       const shouldSign = !iscnId || isUpdate;
       if (shouldSign) {
         try {
-          const res = await signISCNTx(payload, signerData);
+          const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
           ({ iscnId, txHash } = res);
         } catch (err) {
           console.error(err);
           console.error(`Retrying ${name} in 15s`);
           await sleep(15000);
-          const res = await signISCNTx(payload, signerData);
+          const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
           ({ iscnId, txHash } = res);
         }
       }
@@ -154,14 +156,14 @@ async function handleISCNTx(data, isUpdate = false) {
       const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
-      signerData.sequence += 1;
+      sequence += 1;
       if (shouldSign) { await sleep(1000); }
     } catch (err) {
       console.error(err);
       const { message } = err;
       if (message && message.includes('code 32')) {
         console.log(`Nonce ${signerData.sequence} failed, trying to refetch sequence`);
-        signerData.sequence = await getSequence();
+        sequence = await getSequence();
       }
     }
     await sleep(20);
