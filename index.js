@@ -4,6 +4,7 @@ const csvStringify = require('csv-stringify/lib/sync');
 const BigNumber = require('bignumber.js');
 const {
   getWallet,
+  getSequence,
   getSignerData,
   signISCNTx,
   estimateISCNTxGas,
@@ -153,13 +154,14 @@ async function handleISCNTx(data, isUpdate = false) {
       const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
+      signerData.sequence += 1;
       if (shouldSign) { await sleep(1000); }
     } catch (err) {
       console.error(err);
       const { message } = err;
       if (message && message.includes('code 32')) {
-        console.log(`Nonce ${signerData.sequence} failed, trying to increase sequence`);
-        signerData.sequence += 1;
+        console.log(`Nonce ${signerData.sequence} failed, trying to refetch sequence`);
+        signerData.sequence = await getSequence();
       }
     }
     await sleep(20);
