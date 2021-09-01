@@ -192,6 +192,13 @@ async function signISCNTx(inputPayload, explicitSignerData = null) {
   return parseISCNTxInfoFromTxSuccess(response);
 }
 
+async function getSequence() {
+  const { wallet, account: { address } } = await getWallet();
+  const client = await getSigningClient(wallet);
+  const { sequence } = await client.getSequence(address);
+  return sequence;
+}
+
 async function getSignerData() {
   const { wallet, account: { address } } = await getWallet();
   const client = await getSigningClient(wallet);
@@ -205,5 +212,6 @@ module.exports = {
   estimateISCNTxGas,
   estimateISCNTxFee,
   signISCNTx,
+  getSequence,
   getSignerData,
 };
