@@ -170,7 +170,7 @@ async function getSigningClient(wallet) {
   return signingClient;
 }
 
-async function signISCNTx(inputPayload) {
+async function signISCNTx(inputPayload, explicitSignerData = null) {
   const { wallet, account } = await getWallet();
   const { iscnId, ...payload } = inputPayload;
   const isUpdate = !!iscnId;
@@ -187,9 +187,17 @@ async function signISCNTx(inputPayload) {
     value,
   };
   const fee = await estimateISCNTxGas(message);
-  const response = await client.signAndBroadcast(account.address, [message], fee);
+  const response = await client.signAndBroadcast(account.address, [message], fee, '', explicitSignerData);
   assertIsBroadcastTxSuccess(response);
   return parseISCNTxInfoFromTxSuccess(response);
+}
+
+async function getSignerData() {
+  const { wallet, account: { address } } = await getWallet();
+  const client = await getSigningClient(wallet);
+  const { accountNumber, sequence } = await client.getSequence(address);
+  const chainId = await client.getChainId();
+  return { accountNumber, sequence, chainId };
 }
 
 module.exports = {
@@ -197,4 +205,5 @@ module.exports = {
   estimateISCNTxGas,
   estimateISCNTxFee,
   signISCNTx,
+  getSignerData,
 };
