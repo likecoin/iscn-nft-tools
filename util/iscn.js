@@ -85,6 +85,7 @@ function formatISCNPayload(payload, version = 1) {
     '@context': 'http://schema.org/',
     '@type': type || 'CreativeWork',
     title,
+    author,
     description,
     version,
     url,
