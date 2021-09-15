@@ -31,7 +31,7 @@ function convertFieldNames(data) {
   const hashes = [];
   if (ipfsHash) hashes.push(`ipfs://${ipfsHash}`);
   if (arweaveId) hashes.push(`ar://${arweaveId}`);
-  let info = usageInfo || license;
+  const info = usageInfo || license;
   return {
     ...fields,
     type,
