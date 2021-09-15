@@ -96,11 +96,11 @@ async function handleISCNTx(data, isUpdate = false) {
   const { accountNumber, chainId } = signerData;
   let { sequence } = signerData;
   for (let i = 0; i < data.length; i += 1) {
+    const payload = convertFieldNames(data[i]);
+    let { iscnId, txHash } = payload;
+    const { name } = payload;
     /* eslint-disable no-await-in-loop */
     try {
-      const payload = convertFieldNames(data[i]);
-      let { iscnId, txHash } = payload;
-      const { name } = payload;
       const shouldSign = !iscnId || isUpdate;
       if (shouldSign) {
         try {
@@ -120,18 +120,17 @@ async function handleISCNTx(data, isUpdate = false) {
         }
       }
       console.log(`${name} ${txHash} ${iscnId}`);
+      sequence += 1;
+    } catch (err) {
+      console.error(err);
+    } finally {
       const newData = { ...data };
       newData[i].txHash = txHash;
       newData[i].iscnId = iscnId;
       const entry = dataFields.map((field) => newData[i][field]);
       writeCsv([entry]);
       result.push(entry);
-      sequence += 1;
-      if (shouldSign) { await sleep(1000); }
-    } catch (err) {
-      console.error(err);
     }
-    await sleep(20);
     /* eslint-enable no-await-in-loop */
   }
   return result;
