@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { Registry, DirectSecp256k1HdWallet } = require('@cosmjs/proto-signing');
 const { MsgCreateIscnRecord, MsgUpdateIscnRecord } = require('@likecoin/iscn-message-types/dist/iscn/tx');
+const { TxRaw } = require('cosmjs-types/cosmos/tx/v1beta1/tx');
 const {
   defaultRegistryTypes,
   assertIsBroadcastTxSuccess,
@@ -187,7 +188,9 @@ async function signISCNTx(inputPayload, explicitSignerData = null) {
     value,
   };
   const fee = await estimateISCNTxGas(message);
-  const response = await client.signAndBroadcast(account.address, [message], fee, '', explicitSignerData);
+  const txRaw = await client.sign(account.address, [message], fee, '', explicitSignerData);
+  const txBytes = TxRaw.encode(txRaw).finish();
+  const response = await client.broadcastTx(txBytes);
   assertIsBroadcastTxSuccess(response);
   return parseISCNTxInfoFromTxSuccess(response);
 }
