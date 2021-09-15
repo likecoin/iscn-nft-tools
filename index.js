@@ -108,13 +108,13 @@ async function handleISCNTx(data, isUpdate = false) {
           ({ iscnId, txHash } = res);
         } catch (err) {
           console.error(err);
+          console.error(`Retrying ${name} in 15s`);
+          await sleep(15000);
           const { message } = err;
           if (message && message.includes('code 32')) {
             console.log(`Nonce ${signerData.sequence} failed, trying to refetch sequence`);
             sequence = await getSequence();
           }
-          console.error(`Retrying ${name} in 15s`);
-          await sleep(15000);
           const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
           ({ iscnId, txHash } = res);
         }
