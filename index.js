@@ -25,7 +25,7 @@ function convertFieldNames(data) {
     license,
     ipfsHash,
     arweaveId,
-    ...fields, // any other field exists in csv will be put into contentMetadata
+    ...fields // any other field exists in csv will be put into contentMetadata
   } = data;
   /* eslint-enable camelcase */
   const hashes = [];
