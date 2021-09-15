@@ -19,62 +19,27 @@ function convertFieldNames(data) {
   const {
     name,
     description,
-    datePublished,
-    url,
+    type = 'CreativeWork', // or https://schema.org/CreativeWork#subtypes
     author,
     usageInfo,
-    keywords,
-    articleBody,
-    backstory,
-    wordCount,
-    about,
-    abstract,
-    accessMode,
-    acquireLicensePage,
-    copyrightHolder,
-    copyrightNotice,
-    copyrightYear,
-    creativeWorkStatus,
-    creator,
-    encodingFormat,
-    headline,
     license,
-    locationCreated,
-    text,
     ipfsHash,
     arweaveId,
+    ...fields, // any other field exists in csv will be put into contentMetadata
   } = data;
   /* eslint-enable camelcase */
   const hashes = [];
   if (ipfsHash) hashes.push(`ipfs://${ipfsHash}`);
   if (arweaveId) hashes.push(`ar://${arweaveId}`);
+  let info = usageInfo || license;
   return {
-    type: 'Article',
+    ...fields,
+    type,
     name,
     hashes,
     description,
-    datePublished,
-    url,
     author,
-    usageInfo,
-    keywords,
-    articleBody,
-    backstory,
-    wordCount,
-    about,
-    abstract,
-    accessMode,
-    acquireLicensePage,
-    copyrightHolder,
-    copyrightNotice,
-    copyrightYear,
-    creativeWorkStatus,
-    creator,
-    encodingFormat,
-    headline,
-    license,
-    locationCreated,
-    text,
+    usageInfo: info,
   };
 }
 
