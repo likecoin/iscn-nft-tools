@@ -47,7 +47,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function readCsv(path = 'list.csv') {
+async function readCsv(path) {
   const csv = fs.readFileSync(path);
   const data = await neatCsv(csv);
   return data;
@@ -82,7 +82,7 @@ async function estimateISCNFee(data) {
   return result.shiftedBy(-9).toFixed();
 }
 
-async function handleISCNTx(data, isUpdate = false) {
+async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
   const dataFields = Object.keys(data[0]);
   if (!dataFields.includes('txHash')) {
     dataFields.push('txHash');
@@ -91,7 +91,7 @@ async function handleISCNTx(data, isUpdate = false) {
     dataFields.push('iscnId');
   }
   const result = [dataFields];
-  if (!checkIfCsvExists()) writeCsv(result);
+  if (!checkIfCsvExists()) writeCsv(result, outputFilename);
   const signerData = await getSignerData();
   const { accountNumber, chainId } = signerData;
   let { sequence } = signerData;
@@ -128,7 +128,7 @@ async function handleISCNTx(data, isUpdate = false) {
       newData[i].txHash = txHash;
       newData[i].iscnId = iscnId;
       const entry = dataFields.map((field) => newData[i][field]);
-      writeCsv([entry]);
+      writeCsv([entry], outputFilename);
       result.push(entry);
     }
     /* eslint-enable no-await-in-loop */
@@ -138,7 +138,8 @@ async function handleISCNTx(data, isUpdate = false) {
 
 async function run() {
   const args = process.argv.slice(2);
-  const data = await readCsv(args[0]);
+  const filename = args[0] || 'list.csv';
+  const data = await readCsv(filename);
   const isUpdate = args.includes('--update');
   console.log(`size: ${data.length}`);
   const iscnFee = await estimateISCNFee(data);
@@ -149,7 +150,8 @@ async function run() {
     console.error(`low account balance: ${balance.toFixed()}`);
     return;
   }
-  await handleISCNTx(data, isUpdate);
+  const outputFilename = `output-${filename}`;
+  await handleISCNTx(data, { outputFilename, isUpdate });
 }
 
 run();
