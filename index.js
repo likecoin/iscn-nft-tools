@@ -118,9 +118,9 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
           const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
           ({ iscnId, txHash } = res);
         }
+        sequence += 1;
       }
       console.log(`${name} ${txHash} ${iscnId}`);
-      sequence += 1;
     } catch (err) {
       console.error(err);
     } finally {
