@@ -14,7 +14,7 @@ const { ISCN_RPC_URL, COSMOS_MNEMONIC } = require('../config/config');
 const { queryFeePerByte } = require('./iscnQuery');
 
 const ISCN_REGISTRY_NAME = 'likecoin-chain';
-const GAS_ESTIMATOR_BUFFER = 50000;
+const GAS_ESTIMATOR_BUFFER_RATIO = 0.25;
 const GAS_ESTIMATOR_SLOP = 3.58;
 const GAS_ESTIMATOR_INTERCEPT = 99443.87;
 const DEFAULT_GAS_PRICE_NUMBER = 10;
@@ -59,7 +59,7 @@ function estimateISCNTxGas(dataObj) {
   const gas = new BigNumber(bytes.length)
     .multipliedBy(GAS_ESTIMATOR_SLOP)
     .plus(GAS_ESTIMATOR_INTERCEPT)
-    .plus(GAS_ESTIMATOR_BUFFER);
+    .multipliedBy(1 + GAS_ESTIMATOR_BUFFER_RATIO);
   const gasFee = gas.multipliedBy(DEFAULT_GAS_PRICE_NUMBER);
   return {
     amount: [{ amount: gasFee.toFixed(0, 0), denom: 'nanolike' }],
