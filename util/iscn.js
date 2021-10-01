@@ -15,8 +15,8 @@ const { queryFeePerByte } = require('./iscnQuery');
 
 const ISCN_REGISTRY_NAME = 'likecoin-chain';
 const GAS_ESTIMATOR_BUFFER_RATIO = 0.25;
-const GAS_ESTIMATOR_SLOP = 3.58;
-const GAS_ESTIMATOR_INTERCEPT = 99443.87;
+const GAS_ESTIMATOR_SLOP = 10.3;
+const GAS_ESTIMATOR_INTERCEPT = 110533;
 const DEFAULT_GAS_PRICE_NUMBER = 10;
 
 const registry = new Registry([
