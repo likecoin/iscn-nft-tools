@@ -1,13 +1,12 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+/* eslint-disable import/no-extraneous-dependencies */
+const BigNumber = require('bignumber.js');
 const { Registry, DirectSecp256k1HdWallet } = require('@cosmjs/proto-signing');
 const { MsgCreateIscnRecord, MsgUpdateIscnRecord } = require('@likecoin/iscn-message-types/dist/iscn/tx');
-const {
-  defaultRegistryTypes,
-  SigningStargateClient,
-} = require('@cosmjs/stargate');
+const { defaultRegistryTypes, SigningStargateClient } = require('@cosmjs/stargate');
 
 const { ISCN_RPC_URL, COSMOS_MNEMONIC } = require('../config/config');
 
+const COSMOS_DENOM = 'nanolike';
 const registry = new Registry([
   ...defaultRegistryTypes,
   ['/likechain.iscn.MsgCreateIscnRecord', MsgCreateIscnRecord],
@@ -53,8 +52,16 @@ async function getSignerData() {
   return { accountNumber, sequence, chainId };
 }
 
+async function getAccountBalance() {
+  const { wallet, account: { address } } = await getWallet();
+  const client = await getSigningClient(wallet);
+  const balance = await client.getBalance(address, COSMOS_DENOM);
+  return (new BigNumber(balance.amount)).shiftedBy(-9).toFixed();
+}
+
 module.exports = {
   getWallet,
   getSequence,
   getSignerData,
+  getAccountBalance,
 };
