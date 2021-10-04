@@ -2,6 +2,7 @@ const fs = require('fs');
 const neatCsv = require('neat-csv');
 const csvStringify = require('csv-stringify/lib/sync');
 const BigNumber = require('bignumber.js');
+const { ISCNQueryClient, ISCNSigningClient } = require('@likecoin/iscn-js');
 const {
   getWallet,
   getSequence,
@@ -11,6 +12,7 @@ const {
   estimateISCNTxFee,
 } = require('./util/iscn');
 const { getAccountBalance } = require('./util/iscnQuery');
+const { ISCN_RPC_URL } = require('./config/config');
 
 const DEFAULT_OUTPUT_PATH = 'output.csv';
 
@@ -65,24 +67,44 @@ function writeCsv(data, path = DEFAULT_OUTPUT_PATH) {
   });
 }
 
-async function estimateISCNFee(data) {
-  const gasFee = estimateISCNTxGas(data).amount[0].amount;
+async function estimateISCNFee(signingClient, data) {
+  const gasFee = (await signingClient.estimateISCNTxGas(data)).fee.amount[0].amount;
   let result = new BigNumber(gasFee);
-  for (let i = 0; i < data.length; i += 1) {
-    /* eslint-disable no-await-in-loop */
+  const promises = [];
     try {
-      const payload = convertFieldNames(data[i]);
-      const res = await estimateISCNTxFee(payload);
-      result = result.plus(res);
+    data.forEach((item) => {
+      const payload = convertFieldNames(item);
+      promises.push(signingClient.estimateISCNTxFee(payload));
+    });
+    const coins = await Promise.all(promises);
+    result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
     } catch (err) {
       console.error(err);
     }
-    /* eslint-enable no-await-in-loop */
-  }
   return result.shiftedBy(-9).toFixed();
 }
 
-async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
+async function run() {
+  const args = process.argv.slice(2);
+  const filename = args[0] || 'list.csv';
+  const data = await readCsv(filename);
+  const isUpdate = args.includes('--update');
+  console.log(`size: ${data.length}`);
+  const { wallet, account: { address } } = await getWallet();
+  const queryClient = new ISCNQueryClient();
+  const signingClient = new ISCNSigningClient(ISCN_RPC_URL);
+  await Promise.all([
+    queryClient.connect(ISCN_RPC_URL),
+    signingClient.connectWithSigner(ISCN_RPC_URL, wallet),
+  ]);
+  const iscnFee = await estimateISCNFee(signingClient, data);
+  console.log(`Fee: ${iscnFee} LIKE`);
+  const balance = new BigNumber(await getAccountBalance(address));
+  if (balance.lt(iscnFee)) {
+    console.error(`low account balance: ${balance.toFixed()}`);
+    return;
+  }
+  const outputFilename = `output-${filename}`;
   const dataFields = Object.keys(data[0]);
   if (!dataFields.includes('txHash')) {
     dataFields.push('txHash');
@@ -104,8 +126,10 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
       const shouldSign = !iscnId || isUpdate;
       if (shouldSign) {
         try {
-          const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
-          ({ iscnId, txHash } = res);
+          const res = await signingClient.createISCNRecord(address, payload,
+            { accountNumber, sequence, chainId });
+          ({ transactionHash: txHash } = res);
+          [iscnId] = await queryClient.queryISCNIdsByTx(txHash);
         } catch (err) {
           console.error(err);
           console.error(`Retrying ${name} in 15s`);
@@ -115,8 +139,10 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
             console.log(`Nonce ${signerData.sequence} failed, trying to refetch sequence`);
             sequence = await getSequence();
           }
-          const res = await signISCNTx(payload, { accountNumber, sequence, chainId });
-          ({ iscnId, txHash } = res);
+          const res = await signingClient.createISCNRecord(address, payload,
+            { accountNumber, sequence, chainId });
+          ({ transactionHash: txHash } = res);
+          [iscnId] = await queryClient.queryISCNIdsByTx(txHash);
         }
         sequence += 1;
       }
@@ -131,27 +157,6 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
       writeCsv([entry], outputFilename);
       result.push(entry);
     }
-    /* eslint-enable no-await-in-loop */
   }
-  return result;
 }
-
-async function run() {
-  const args = process.argv.slice(2);
-  const filename = args[0] || 'list.csv';
-  const data = await readCsv(filename);
-  const isUpdate = args.includes('--update');
-  console.log(`size: ${data.length}`);
-  const iscnFee = await estimateISCNFee(data);
-  console.log(`Fee: ${iscnFee} LIKE`);
-  const { account } = await getWallet();
-  const balance = new BigNumber(await getAccountBalance(account.address));
-  if (balance.lt(iscnFee)) {
-    console.error(`low account balance: ${balance.toFixed()}`);
-    return;
-  }
-  const outputFilename = `output-${filename}`;
-  await handleISCNTx(data, { outputFilename, isUpdate });
-}
-
 run();
