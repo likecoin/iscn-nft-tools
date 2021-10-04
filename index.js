@@ -7,8 +7,8 @@ const {
   getWallet,
   getSequence,
   getSignerData,
+  getAccountBalance,
 } = require('./util/iscn');
-const { getAccountBalance } = require('./util/iscnQuery');
 const { ISCN_RPC_URL } = require('./config/config');
 
 const DEFAULT_OUTPUT_PATH = 'output.csv';
@@ -96,7 +96,7 @@ async function run() {
   ]);
   const iscnFee = await estimateISCNFee(signingClient, data);
   console.log(`Fee: ${iscnFee} LIKE`);
-  const balance = new BigNumber(await getAccountBalance(address));
+  const balance = new BigNumber(await getAccountBalance(queryClient, address));
   if (balance.lt(iscnFee)) {
     console.error(`low account balance: ${balance.toFixed()}`);
     return;
