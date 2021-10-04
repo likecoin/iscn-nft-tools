@@ -5,6 +5,7 @@ const BigNumber = require('bignumber.js');
 
 const {
   getSequence,
+  getSignerData,
   getAccountBalance,
   createISCNRecord,
   estimateISCNFee,
@@ -87,7 +88,9 @@ async function run() {
   }
   const result = [dataFields];
   if (!checkIfCsvExists()) writeCsv(result, outputFilename);
-  let sequence = await getSequence();
+  const signerData = await getSignerData();
+  const { accountNumber, chainId } = signerData;
+  let { sequence } = signerData;
   for (let i = 0; i < data.length; i += 1) {
     const payload = convertFieldNames(data[i]);
     let { iscnId, txHash } = payload;
@@ -97,7 +100,7 @@ async function run() {
       const shouldSign = !iscnId || isUpdate;
       if (shouldSign) {
         try {
-          const res = await createISCNRecord(payload, { sequence });
+          const res = await createISCNRecord(payload, { accountNumber, sequence, chainId });
           ({ txHash, iscnId } = res);
         } catch (err) {
           console.error(err);
@@ -108,7 +111,7 @@ async function run() {
             console.log(`Nonce ${sequence} failed, trying to refetch sequence`);
             sequence = await getSequence();
           }
-          const res = await createISCNRecord(payload, { sequence });
+          const res = await createISCNRecord(payload, { accountNumber, sequence, chainId });
           ({ txHash, iscnId } = res);
         }
         sequence += 1;
