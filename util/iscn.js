@@ -64,7 +64,9 @@ async function getSignerData() {
 }
 
 async function getSequence() {
-  const { sequence } = await getSignerData();
+  const address = await getAddress();
+  const client = await getSigningStargateClient();
+  const { sequence } = await client.getSequence(address);
   return sequence;
 }
 
