@@ -7,9 +7,6 @@ const {
   getWallet,
   getSequence,
   getSignerData,
-  signISCNTx,
-  estimateISCNTxGas,
-  estimateISCNTxFee,
 } = require('./util/iscn');
 const { getAccountBalance } = require('./util/iscnQuery');
 const { ISCN_RPC_URL } = require('./config/config');
@@ -71,16 +68,16 @@ async function estimateISCNFee(signingClient, data) {
   const gasFee = (await signingClient.estimateISCNTxGas(data)).fee.amount[0].amount;
   let result = new BigNumber(gasFee);
   const promises = [];
-    try {
+  try {
     data.forEach((item) => {
       const payload = convertFieldNames(item);
       promises.push(signingClient.estimateISCNTxFee(payload));
     });
     const coins = await Promise.all(promises);
     result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
-    } catch (err) {
-      console.error(err);
-    }
+  } catch (err) {
+    console.error(err);
+  }
   return result.shiftedBy(-9).toFixed();
 }
 
