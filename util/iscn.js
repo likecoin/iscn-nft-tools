@@ -1,67 +1,116 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const BigNumber = require('bignumber.js');
-const { Registry, DirectSecp256k1HdWallet } = require('@cosmjs/proto-signing');
-const { MsgCreateIscnRecord, MsgUpdateIscnRecord } = require('@likecoin/iscn-message-types/dist/iscn/tx');
-const { defaultRegistryTypes, SigningStargateClient } = require('@cosmjs/stargate');
+const { DirectSecp256k1HdWallet } = require('@cosmjs/proto-signing');
+const { ISCNQueryClient, ISCNSigningClient } = require('@likecoin/iscn-js');
 
 const { ISCN_RPC_URL, COSMOS_MNEMONIC } = require('../config/config');
 
 const COSMOS_DENOM = 'nanolike';
-const registry = new Registry([
-  ...defaultRegistryTypes,
-  ['/likechain.iscn.MsgCreateIscnRecord', MsgCreateIscnRecord],
-  ['/likechain.iscn.MsgUpdateIscnRecord', MsgUpdateIscnRecord],
-]);
 
 let signingWallet;
-let signingAccounts;
-let signingClient;
+let signingAddress;
+let iscnQueryClient;
+let iscnSigningClient;
+let signingStargateClient;
 
 async function getWallet() {
   if (!signingWallet) {
     signingWallet = await DirectSecp256k1HdWallet.fromMnemonic(COSMOS_MNEMONIC);
-    [signingAccounts] = await signingWallet.getAccounts();
-    console.log(signingAccounts.address);
   }
-  return { wallet: signingWallet, account: signingAccounts };
+  return signingWallet;
 }
 
-async function getSigningClient(wallet) {
-  if (!signingClient) {
-    signingClient = await SigningStargateClient.connectWithSigner(
-      ISCN_RPC_URL,
-      wallet,
-      { registry },
-    );
+async function getAddress() {
+  if (!signingAddress) {
+    const wallet = await getWallet();
+    const [{ address }] = await wallet.getAccounts();
+    signingAddress = address;
+    console.log(address);
   }
-  return signingClient;
+  return signingAddress;
 }
 
-async function getSequence() {
-  const { wallet, account: { address } } = await getWallet();
-  const client = await getSigningClient(wallet);
-  const { sequence } = await client.getSequence(address);
-  return sequence;
+async function getISCNQueryClient() {
+  if (!iscnQueryClient) {
+    iscnQueryClient = new ISCNQueryClient();
+    await iscnQueryClient.connect(ISCN_RPC_URL);
+  }
+  return iscnQueryClient;
+}
+
+async function getISCNSigningClient() {
+  if (!iscnSigningClient) {
+    const wallet = await getWallet();
+    iscnSigningClient = new ISCNSigningClient(ISCN_RPC_URL);
+    await iscnSigningClient.connectWithSigner(ISCN_RPC_URL, wallet);
+  }
+  return iscnSigningClient;
+}
+
+async function getSigningStargateClient() {
+  if (!signingStargateClient) {
+    iscnSigningClient = await getISCNSigningClient();
+    signingStargateClient = iscnSigningClient.getSigningStargateClient();
+  }
+  return signingStargateClient;
 }
 
 async function getSignerData() {
-  const { wallet, account: { address } } = await getWallet();
-  const client = await getSigningClient(wallet);
+  const address = await getAddress();
+  const client = await getSigningStargateClient();
   const { accountNumber, sequence } = await client.getSequence(address);
   const chainId = await client.getChainId();
   return { accountNumber, sequence, chainId };
 }
 
+async function getSequence() {
+  const { sequence } = await getSignerData();
+  return sequence;
+}
+
 async function getAccountBalance() {
-  const { wallet, account: { address } } = await getWallet();
-  const client = await getSigningClient(wallet);
+  const address = await getAddress();
+  const client = await getSigningStargateClient();
   const balance = await client.getBalance(address, COSMOS_DENOM);
-  return (new BigNumber(balance.amount)).shiftedBy(-9).toFixed();
+  return balance;
+}
+
+async function createISCNRecord(payload, signOptions) {
+  const address = await getAddress();
+  const queryClient = await getISCNQueryClient();
+  const signingClient = await getISCNSigningClient();
+  const res = await signingClient.createISCNRecord(address, payload, signOptions);
+  const { transactionHash: txHash } = res;
+  const [iscnId] = await queryClient.queryISCNIdsByTx(txHash);
+  return { txHash, iscnId };
+}
+
+async function estimateISCNFee(data, convertFunc) {
+  const signingClient = await getISCNSigningClient();
+  const gasFee = (await signingClient.estimateISCNTxGas(data)).fee.amount[0].amount;
+  let result = new BigNumber(gasFee);
+  try {
+    const promises = data.map((item) => {
+      const payload = convertFunc(item);
+      return signingClient.estimateISCNTxFee(payload);
+    });
+    const coins = await Promise.all(promises);
+    result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
+  } catch (err) {
+    console.error(err);
+  }
+  return result.shiftedBy(-9).toFixed();
 }
 
 module.exports = {
   getWallet,
+  getAddress,
+  getISCNQueryClient,
+  getISCNSigningClient,
+  getSigningStargateClient,
   getSequence,
   getSignerData,
   getAccountBalance,
+  createISCNRecord,
+  estimateISCNFee,
 };
