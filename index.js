@@ -64,21 +64,7 @@ function writeCsv(data, path = DEFAULT_OUTPUT_PATH) {
   });
 }
 
-async function run() {
-  const args = process.argv.slice(2);
-  const filename = args[0] || 'list.csv';
-  const data = await readCsv(filename);
-  const isUpdate = args.includes('--update');
-  console.log(`size: ${data.length}`);
-  const iscnFee = await estimateISCNFee(data, convertFieldNames);
-  console.log(`Fee: ${iscnFee} LIKE`);
-  const { amount } = await getAccountBalance();
-  const balance = new BigNumber(amount).shiftedBy(-9);
-  if (balance.lt(iscnFee)) {
-    console.error(`low account balance: ${balance.toFixed()}`);
-    return;
-  }
-  const outputFilename = `output-${filename}`;
+async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
   const dataFields = Object.keys(data[0]);
   if (!dataFields.includes('txHash')) {
     dataFields.push('txHash');
@@ -128,5 +114,24 @@ async function run() {
       result.push(entry);
     }
   }
+}
+
+async function run() {
+  const args = process.argv.slice(2);
+  const filename = args[0] || 'list.csv';
+  const isUpdate = args.includes('--update');
+  const data = await readCsv(filename);
+  console.log(`size: ${data.length}`);
+  const convertedData = data.map((item) => convertFieldNames(item));
+  const iscnFee = await estimateISCNFee(convertedData);
+  console.log(`Fee: ${iscnFee} LIKE`);
+  const { amount } = await getAccountBalance();
+  const balance = new BigNumber(amount).shiftedBy(-9);
+  if (balance.lt(iscnFee)) {
+    console.error(`low account balance: ${balance.toFixed()}`);
+    return;
+  }
+  const outputFilename = `output-${filename}`;
+  await handleISCNTx(data, { isUpdate, outputFilename });
 }
 run();

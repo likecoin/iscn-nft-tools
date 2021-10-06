@@ -56,46 +56,39 @@ async function getSigningStargateClient() {
 }
 
 async function getSignerData() {
-  const address = await getAddress();
-  const client = await getSigningStargateClient();
+  const [address, client] = await Promise.all([getAddress(), getSigningStargateClient()]);
   const { accountNumber, sequence } = await client.getSequence(address);
   const chainId = await client.getChainId();
   return { accountNumber, sequence, chainId };
 }
 
 async function getSequence() {
-  const address = await getAddress();
-  const client = await getSigningStargateClient();
+  const [address, client] = await Promise.all([getAddress(), getSigningStargateClient()]);
   const { sequence } = await client.getSequence(address);
   return sequence;
 }
 
 async function getAccountBalance() {
-  const address = await getAddress();
-  const client = await getSigningStargateClient();
+  const [address, client] = await Promise.all([getAddress(), getSigningStargateClient()]);
   const balance = await client.getBalance(address, COSMOS_DENOM);
   return balance;
 }
 
 async function createISCNRecord(payload, signOptions) {
-  const address = await getAddress();
-  const queryClient = await getISCNQueryClient();
-  const signingClient = await getISCNSigningClient();
+  const [address, queryClient, signingClient] = await Promise.all([
+    getAddress(), getISCNQueryClient(), getISCNSigningClient()]);
   const res = await signingClient.createISCNRecord(address, payload, signOptions);
   const { transactionHash: txHash } = res;
   const [iscnId] = await queryClient.queryISCNIdsByTx(txHash);
   return { txHash, iscnId };
 }
 
-async function estimateISCNFee(data, convertFunc) {
+async function estimateISCNFee(data) {
   const signingClient = await getISCNSigningClient();
   const gasFee = (await signingClient.estimateISCNTxGas(data)).fee.amount[0].amount;
   let result = new BigNumber(gasFee);
   try {
-    const promises = data.map((item) => {
-      const payload = convertFunc(item);
-      return signingClient.estimateISCNTxFee(payload);
-    });
+    const promises = data.map((item) => signingClient.estimateISCNTxFee(item));
     const coins = await Promise.all(promises);
     result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
   } catch (err) {
