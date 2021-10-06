@@ -32,8 +32,9 @@ async function getAddress() {
 
 async function getISCNQueryClient() {
   if (!iscnQueryClient) {
-    iscnQueryClient = new ISCNQueryClient();
-    await iscnQueryClient.connect(ISCN_RPC_URL);
+    const pendingClient = new ISCNQueryClient();
+    await pendingClient.connect(ISCN_RPC_URL);
+    iscnQueryClient = pendingClient;
   }
   return iscnQueryClient;
 }
@@ -41,8 +42,9 @@ async function getISCNQueryClient() {
 async function getISCNSigningClient() {
   if (!iscnSigningClient) {
     const wallet = await getWallet();
-    iscnSigningClient = new ISCNSigningClient(ISCN_RPC_URL);
-    await iscnSigningClient.connectWithSigner(ISCN_RPC_URL, wallet);
+    const pendingClient = new ISCNSigningClient(ISCN_RPC_URL);
+    await pendingClient.connectWithSigner(ISCN_RPC_URL, wallet);
+    iscnSigningClient = pendingClient;
   }
   return iscnSigningClient;
 }
