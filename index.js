@@ -7,7 +7,7 @@ const {
   getSequence,
   getSignerData,
   getAccountBalance,
-  createISCNRecord,
+  signISCN,
   estimateISCNFee,
 } = require('./util/iscn');
 
@@ -86,7 +86,8 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
       const shouldSign = !iscnId || isUpdate;
       if (shouldSign) {
         try {
-          const res = await createISCNRecord(payload, { accountNumber, sequence, chainId });
+          const res = await signISCN(payload,
+            { accountNumber, sequence, chainId }, iscnId);
           ({ txHash, iscnId } = res);
         } catch (err) {
           console.error(err);
@@ -97,7 +98,8 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
             console.log(`Nonce ${sequence} failed, trying to refetch sequence`);
             sequence = await getSequence();
           }
-          const res = await createISCNRecord(payload, { accountNumber, sequence, chainId });
+          const res = await signISCN(payload,
+            { accountNumber, sequence, chainId }, iscnId);
           ({ txHash, iscnId } = res);
         }
         sequence += 1;
