@@ -76,10 +76,15 @@ async function getAccountBalance() {
   return balance;
 }
 
-async function createISCNRecord(payload, signOptions) {
+async function signISCN(payload, signOptions, iscnIdForUpdate) {
   const [address, queryClient, signingClient] = await Promise.all([
     getAddress(), getISCNQueryClient(), getISCNSigningClient()]);
-  const res = await signingClient.createISCNRecord(address, payload, signOptions);
+  let res;
+  if (iscnIdForUpdate) {
+    res = await signingClient.updateISCNRecord(address, iscnIdForUpdate, payload, signOptions);
+  } else {
+    res = await signingClient.createISCNRecord(address, payload, signOptions);
+  }
   const { transactionHash: txHash } = res;
   const [iscnId] = await queryClient.queryISCNIdsByTx(txHash);
   return { txHash, iscnId };
@@ -108,6 +113,6 @@ module.exports = {
   getSequence,
   getSignerData,
   getAccountBalance,
-  createISCNRecord,
+  signISCN,
   estimateISCNFee,
 };
