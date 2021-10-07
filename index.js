@@ -90,11 +90,14 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
             { accountNumber, sequence, chainId }, iscnId);
           ({ txHash, iscnId } = res);
         } catch (err) {
+          // eslint-disable-next-line no-console
           console.error(err);
+          // eslint-disable-next-line no-console
           console.error(`Retrying ${name} in 15s`);
           await sleep(15000);
           const { message } = err;
           if (message && message.includes('code 32')) {
+            // eslint-disable-next-line no-console
             console.log(`Nonce ${sequence} failed, trying to refetch sequence`);
             sequence = await getSequence();
           }
@@ -104,8 +107,10 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
         }
         sequence += 1;
       }
+      // eslint-disable-next-line no-console
       console.log(`${name} ${txHash} ${iscnId}`);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error(err);
     } finally {
       const newData = { ...data };
@@ -115,6 +120,7 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
       writeCsv([entry], outputFilename);
       result.push(entry);
     }
+    /* eslint-enable no-await-in-loop */
   }
 }
 
@@ -123,13 +129,16 @@ async function run() {
   const filename = args[0] || 'list.csv';
   const isUpdate = args.includes('--update');
   const data = await readCsv(filename);
+  // eslint-disable-next-line no-console
   console.log(`size: ${data.length}`);
   const convertedData = data.map((item) => convertFieldNames(item));
   const iscnFee = await estimateISCNFee(convertedData);
+  // eslint-disable-next-line no-console
   console.log(`Fee: ${iscnFee} LIKE`);
   const { amount } = await getAccountBalance();
   const balance = new BigNumber(amount).shiftedBy(-9);
   if (balance.lt(iscnFee)) {
+    // eslint-disable-next-line no-console
     console.error(`low account balance: ${balance.toFixed()}`);
     return;
   }

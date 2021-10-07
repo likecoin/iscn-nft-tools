@@ -25,6 +25,7 @@ async function getAddress() {
     const wallet = await getWallet();
     const [{ address }] = await wallet.getAccounts();
     signingAddress = address;
+    // eslint-disable-next-line no-console
     console.log(address);
   }
   return signingAddress;
@@ -99,6 +100,7 @@ async function estimateISCNFee(data) {
     const coins = await Promise.all(promises);
     result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error(err);
   }
   return result.shiftedBy(-9).toFixed();
