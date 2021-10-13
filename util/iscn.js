@@ -93,17 +93,28 @@ async function signISCN(payload, signOptions, iscnIdForUpdate) {
 
 async function estimateISCNFee(data) {
   const signingClient = await getISCNSigningClient();
-  const gasFee = (await signingClient.estimateISCNTxGas(data)).fee.amount[0].amount;
-  let result = new BigNumber(gasFee);
+  const chunkSize = 10000;
   try {
-    const promises = data.map((item) => signingClient.estimateISCNTxFee(item));
-    const coins = await Promise.all(promises);
-    result = coins.reduce((sum, curr) => sum.plus(curr.amount), result);
+    const gasFeePromises = [];
+    for (let i = 0; i < data.length; i += chunkSize) {
+      const chunk = data.slice(i, i + chunkSize);
+      gasFeePromises.push(signingClient.estimateISCNTxGas(chunk));
+    }
+    const gasFees = await Promise.all(gasFeePromises);
+    const totalGasFee = gasFees.reduce(
+      (sum, curr) => sum.plus(curr.fee.amount[0].amount), new BigNumber(0),
+    );
+
+    const ISCNFeePromises = data.map((row) => signingClient.estimateISCNTxFee(row));
+    const ISCNFees = await Promise.all(ISCNFeePromises);
+    const totalISCNFee = ISCNFees.reduce((sum, curr) => sum.plus(curr.amount), new BigNumber(0));
+
+    return totalGasFee.plus(totalISCNFee).shiftedBy(-9).toFixed();
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error(err);
+    console.error('Failed to estimate ISCN fee');
+    throw err;
   }
-  return result.shiftedBy(-9).toFixed();
 }
 
 module.exports = {
