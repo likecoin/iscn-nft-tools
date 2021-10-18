@@ -93,13 +93,8 @@ async function signISCN(payload, signOptions, iscnIdForUpdate) {
 
 async function estimateISCNFee(data) {
   const signingClient = await getISCNSigningClient();
-  const chunkSize = 10000;
   try {
-    const gasFeePromises = [];
-    for (let i = 0; i < data.length; i += chunkSize) {
-      const chunk = data.slice(i, i + chunkSize);
-      gasFeePromises.push(signingClient.estimateISCNTxGas(chunk));
-    }
+    const gasFeePromises = data.map((row) => signingClient.estimateISCNTxGas(row));
     const gasFees = await Promise.all(gasFeePromises);
     const totalGasFee = gasFees.reduce(
       (sum, curr) => sum.plus(curr.fee.amount[0].amount), new BigNumber(0),
