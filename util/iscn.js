@@ -93,21 +93,30 @@ async function signISCN(payload, signOptions, iscnIdForUpdate) {
 
 async function estimateISCNFee(data) {
   const signingClient = await getISCNSigningClient();
+  const chunkSize = 100000;
+  let totalGasFee = new BigNumber(0);
+  let totalISCNFee = new BigNumber(0);
   try {
-    const gasFeePromises = data.map((row) => signingClient.estimateISCNTxGas(row));
-    const gasFees = await Promise.all(gasFeePromises);
-    const totalGasFee = gasFees.reduce(
-      (sum, curr) => sum.plus(curr.fee.amount[0].amount), new BigNumber(0),
-    );
-
-    const ISCNFeePromises = data.map((row) => signingClient.estimateISCNTxFee(row));
-    const ISCNFees = await Promise.all(ISCNFeePromises);
-    const totalISCNFee = ISCNFees.reduce((sum, curr) => sum.plus(curr.amount), new BigNumber(0));
-
+    for (let chunkStart = 0; chunkStart < data.length; chunkStart += chunkSize) {
+      const gasFeePromises = [];
+      const ISCNFeePromises = [];
+      for (let i = chunkStart; i < chunkStart + chunkSize && i < data.length; i += 1) {
+        gasFeePromises.push(signingClient.estimateISCNTxGas(data[i]));
+        ISCNFeePromises.push(signingClient.estimateISCNTxFee(data[i]));
+      }
+      /* eslint-disable no-await-in-loop */
+      const gasFees = await Promise.all(gasFeePromises);
+      const ISCNFees = await Promise.all(ISCNFeePromises);
+      /* eslint-enable no-await-in-loop */
+      totalGasFee = gasFees.reduce(
+        (sum, curr) => sum.plus(curr.fee.amount[0].amount), totalGasFee,
+      );
+      totalISCNFee = ISCNFees.reduce((sum, curr) => sum.plus(curr.amount), totalISCNFee);
+    }
     return totalGasFee.plus(totalISCNFee).shiftedBy(-9).toFixed();
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('Failed to estimate ISCN fee');
+    console.error('Failed to estimate fee');
     throw err;
   }
 }
