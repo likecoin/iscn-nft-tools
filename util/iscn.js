@@ -91,7 +91,7 @@ async function signISCN(payload, signOptions, iscnIdForUpdate) {
   return { txHash, iscnId };
 }
 
-async function estimateISCNFee(data) {
+async function estimateISCNFee(data, gasPrice) {
   const signingClient = await getISCNSigningClient();
   const chunkSize = 100000;
   let totalGasFee = new BigNumber(0);
@@ -101,7 +101,7 @@ async function estimateISCNFee(data) {
       const gasFeePromises = [];
       const ISCNFeePromises = [];
       for (let i = chunkStart; i < chunkStart + chunkSize && i < data.length; i += 1) {
-        gasFeePromises.push(signingClient.estimateISCNTxGas(data[i]));
+        gasFeePromises.push(signingClient.estimateISCNTxGas(data[i], { gasPrice }));
         ISCNFeePromises.push(signingClient.estimateISCNTxFee(data[i]));
       }
       /* eslint-disable no-await-in-loop */

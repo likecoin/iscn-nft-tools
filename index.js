@@ -12,6 +12,7 @@ const {
 } = require('./util/iscn');
 
 const DEFAULT_OUTPUT_PATH = 'output.csv';
+const GAS_PRICE = 10;
 
 function convertFieldNames(data) {
   /* eslint-disable camelcase */
@@ -87,7 +88,13 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
       if (shouldSign) {
         try {
           const res = await signISCN(payload,
-            { accountNumber, sequence, chainId }, iscnId);
+            {
+              accountNumber,
+              sequence,
+              chainId,
+              gasPrice: GAS_PRICE,
+            },
+            iscnId);
           ({ txHash, iscnId } = res);
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -102,7 +109,13 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
             sequence = await getSequence();
           }
           const res = await signISCN(payload,
-            { accountNumber, sequence, chainId }, iscnId);
+            {
+              accountNumber,
+              sequence,
+              chainId,
+              gasPrice: GAS_PRICE,
+            },
+            iscnId);
           ({ txHash, iscnId } = res);
         }
         sequence += 1;
@@ -132,7 +145,7 @@ async function run() {
   // eslint-disable-next-line no-console
   console.log(`size: ${data.length}`);
   const convertedData = data.map((item) => convertFieldNames(item));
-  const iscnFee = await estimateISCNFee(convertedData);
+  const iscnFee = await estimateISCNFee(convertedData, GAS_PRICE);
   // eslint-disable-next-line no-console
   console.log(`Fee: ${iscnFee} LIKE`);
   const { amount } = await getAccountBalance();
