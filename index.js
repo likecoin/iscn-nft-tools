@@ -12,6 +12,8 @@ const {
 } = require('./util/iscn');
 
 const DEFAULT_OUTPUT_PATH = 'output.csv';
+const DEFAULT_ARRAY_DELIMITER = ',';
+const ARRAY_TYPE_FIELDS = ['keywords'];
 const GAS_PRICE = 10;
 
 function convertFieldNames(data) {
@@ -47,10 +49,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function handleArrayFields(data) {
+  if (!data[0]) { return data; }
+  const fieldsToHandle = ARRAY_TYPE_FIELDS.filter((field) => data[0][field] !== undefined);
+  return data.map((input) => {
+    const output = { ...input };
+    fieldsToHandle.forEach((field) => {
+      output[field] = input[field].split(DEFAULT_ARRAY_DELIMITER);
+    });
+    return output;
+  });
+}
+
 async function readCsv(path) {
   const csv = fs.readFileSync(path);
   const data = await neatCsv(csv);
-  return data;
+  return handleArrayFields(data);
 }
 
 function checkIfCsvExists(path = DEFAULT_OUTPUT_PATH) {
