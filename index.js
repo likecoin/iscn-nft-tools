@@ -51,7 +51,7 @@ function sleep(ms) {
 
 function handleArrayFields(data) {
   if (!data[0]) { return data; }
-  const fieldsToHandle = ARRAY_TYPE_FIELDS.filter((field) => data[0][field]);
+  const fieldsToHandle = ARRAY_TYPE_FIELDS.filter((field) => data[0][field] !== undefined);
   return data.map((input) => {
     const output = { ...input };
     fieldsToHandle.forEach((field) => {
