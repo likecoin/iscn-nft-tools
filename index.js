@@ -52,14 +52,13 @@ function sleep(ms) {
 function handleArrayFields(data) {
   if (!data[0]) { return data; }
   const fieldsToHandle = ARRAY_TYPE_FIELDS.filter((field) => data[0][field]);
-  data.forEach((row) => {
-    for (let i = 0; i < fieldsToHandle.length; i += 1) {
-      const field = fieldsToHandle[i];
-      // eslint-disable-next-line no-param-reassign
-      row[field] = row[field].split(DEFAULT_ARRAY_DELIMITER);
-    }
+  return data.map((input) => {
+    const output = { ...input };
+    fieldsToHandle.forEach((field) => {
+      output[field] = input[field].split(DEFAULT_ARRAY_DELIMITER);
+    });
+    return output;
   });
-  return data;
 }
 
 async function readCsv(path) {
