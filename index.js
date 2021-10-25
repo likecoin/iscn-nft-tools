@@ -51,21 +51,15 @@ function sleep(ms) {
 
 function handleArrayFields(data) {
   if (!data[0]) { return data; }
-  const fieldsToHandle = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const field of ARRAY_TYPE_FIELDS) {
-    if (data[0][field]) {
-      fieldsToHandle.push(field);
+  const fieldsToHandle = ARRAY_TYPE_FIELDS.filter((field) => data[0][field]);
+  data.forEach((row) => {
+    for (let i = 0; i < fieldsToHandle.length; i += 1) {
+      const field = fieldsToHandle[i];
+      // eslint-disable-next-line no-param-reassign
+      row[field] = row[field].split(DEFAULT_ARRAY_DELIMITER);
     }
-  }
-  return data.map((row) => {
-    const modified = { ...row };
-    // eslint-disable-next-line no-restricted-syntax
-    for (const field of fieldsToHandle) {
-      modified[field] = row[field].split(DEFAULT_ARRAY_DELIMITER);
-    }
-    return modified;
   });
+  return data;
 }
 
 async function readCsv(path) {
