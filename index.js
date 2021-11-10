@@ -17,7 +17,6 @@ const ARRAY_TYPE_FIELDS = ['keywords'];
 const GAS_PRICE = 10;
 
 function convertFieldNames(data) {
-  /* eslint-disable camelcase */
   const {
     name,
     description,
@@ -27,18 +26,31 @@ function convertFieldNames(data) {
     license,
     ipfsHash,
     arweaveId,
+    fileSHA256,
     ...fields // any other field exists in csv will be put into contentMetadata
   } = data;
-  /* eslint-enable camelcase */
-  const hashes = [];
-  if (ipfsHash) hashes.push(`ipfs://${ipfsHash}`);
-  if (arweaveId) hashes.push(`ar://${arweaveId}`);
+  const contentFingerprints = [];
+  if (fileSHA256) contentFingerprints.push(`hash://sha256/${fileSHA256}`);
+  if (ipfsHash) contentFingerprints.push(`ipfs://${ipfsHash}`);
+  if (arweaveId) contentFingerprints.push(`ar://${arweaveId}`);
+  const stakeholders = [];
+  if (author) {
+    stakeholders.push({
+      entity: {
+        id: author,
+        name: author,
+      },
+      rewardProportion: 1,
+      contributionType: 'http://schema.org/author',
+    });
+  }
   const info = usageInfo || license;
   return {
     ...fields,
     type,
     name,
-    hashes,
+    contentFingerprints,
+    stakeholders,
     description,
     author,
     usageInfo: info,
