@@ -14,7 +14,7 @@ npm install
 
 Change the config in `./config/config.js`
 
-Where `ISCN_RPC_URL` is the node RPC endpoint for LikeCoin chain, `COSMOS_MNEMONIC` is the mnemonic of your wallet.
+Where `ISCN_RPC_URL` is the node RPC endpoint for LikeCoin chain, `COSMOS_MNEMONIC` is the mnemonic of your wallet, `COSMOS_DENOM` is the denom of chain (testnet: nanoekil, mainnet: nanolike).
 
 ## Usage
 
