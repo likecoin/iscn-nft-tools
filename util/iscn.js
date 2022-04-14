@@ -3,9 +3,7 @@ const BigNumber = require('bignumber.js');
 const { DirectSecp256k1HdWallet } = require('@cosmjs/proto-signing');
 const { ISCNQueryClient, ISCNSigningClient } = require('@likecoin/iscn-js');
 
-const { ISCN_RPC_URL, COSMOS_MNEMONIC } = require('../config/config');
-
-const COSMOS_DENOM = 'nanolike';
+const { ISCN_RPC_URL, COSMOS_MNEMONIC, COSMOS_DENOM } = require('../config/config');
 
 let signingWallet;
 let signingAddress;
