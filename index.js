@@ -2,6 +2,7 @@ const fs = require('fs');
 const neatCsv = require('neat-csv');
 const csvStringify = require('csv-stringify/lib/sync');
 const BigNumber = require('bignumber.js');
+const { version } = require('./package.json');
 
 const {
   getSequence,
@@ -15,6 +16,7 @@ const DEFAULT_OUTPUT_PATH = 'output.csv';
 const DEFAULT_ARRAY_DELIMITER = ',';
 const ARRAY_TYPE_FIELDS = ['keywords'];
 const GAS_PRICE = 10;
+const ISCN_RECORD_NOTES = `iscn-batch-uploader ${version}`;
 
 function convertFieldNames(data) {
   const {
@@ -27,6 +29,7 @@ function convertFieldNames(data) {
     ipfsHash,
     arweaveId,
     fileSHA256,
+    recordNotes,
     ...fields // any other field exists in csv will be put into contentMetadata
   } = data;
   const contentFingerprints = [];
@@ -54,6 +57,7 @@ function convertFieldNames(data) {
     description,
     author,
     usageInfo: info,
+    recordNotes: recordNotes || ISCN_RECORD_NOTES,
   };
 }
 
@@ -119,6 +123,7 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
               sequence,
               chainId,
               gasPrice: GAS_PRICE,
+              memo: ISCN_RECORD_NOTES,
             },
             iscnId);
           ({ txHash, iscnId } = res);
@@ -140,6 +145,7 @@ async function handleISCNTx(data, { isUpdate = false, outputFilename } = {}) {
               sequence,
               chainId,
               gasPrice: GAS_PRICE,
+              memo: ISCN_RECORD_NOTES,
             },
             iscnId);
           ({ txHash, iscnId } = res);
