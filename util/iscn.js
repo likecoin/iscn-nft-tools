@@ -13,7 +13,7 @@ let signingStargateClient;
 
 async function getWallet() {
   if (!signingWallet) {
-    signingWallet = await DirectSecp256k1HdWallet.fromMnemonic(COSMOS_MNEMONIC);
+    signingWallet = await DirectSecp256k1HdWallet.fromMnemonic(COSMOS_MNEMONIC, { prefix: 'like' });
   }
   return signingWallet;
 }
