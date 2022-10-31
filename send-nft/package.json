@@ -1,0 +1,28 @@
+{
+  "name": "send-nft",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "IS_TESTNET=TRUE node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint index.js"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cosmjs/proto-signing": "^0.28.13",
+    "@cosmjs/stargate": "^0.28.13",
+    "@likecoin/iscn-js": "^0.2.3",
+    "bignumber.js": "^9.1.0",
+    "cosmjs-types": "^0.5.1",
+    "neat-csv": "^7.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.23.0",
+    "eslint-loader": "^2.1.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
+  }
+}
