@@ -1,4 +1,5 @@
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { TimeoutError } from '@cosmjs/stargate';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
 import fs from 'fs';
 import neatCsv from 'neat-csv';
@@ -9,7 +10,7 @@ import { formatMsgSend } from '@likecoin/iscn-js/dist/messages/likenft.js';
 import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination.js';
 import {
   MNEMONIC, WAIT_TIME, RPC_ENDPOINT, DENOM, MEMO,
-// eslint-disable-next-line import/extensions
+  // eslint-disable-next-line import/extensions
 } from './config/config.js';
 
 const gasNeedDigits = 5;
@@ -67,13 +68,8 @@ async function run() {
 
     const nftsDataObject = {};
     const nftCountObject = data.reduce((object, item) => {
-      if (object[item.classId]) {
-        // eslint-disable-next-line no-param-reassign
-        object[item.classId] += 1;
-      } else {
-        // eslint-disable-next-line no-param-reassign
-        object[item.classId] = 1;
-      }
+      // eslint-disable-next-line no-param-reassign
+      object[item.classId] = (object[item.classId] || 1) + 1;
       return object;
     }, {});
 
@@ -108,36 +104,65 @@ async function run() {
     const signingClient = await createNFTSigningClient(signer);
     const client = signingClient.getSigningStargateClient();
 
+    const hasCsvMemo = !!data.find((e) => !!e.memo);
+
     const msgAnyArray = [];
-    data.forEach((e) => {
+    for (let i = 0; i < data.length; i += 1) {
+      const e = data[i];
       const removed = nftsDataObject[e.classId].splice(0, 1);
-      const msgAny = formatMsgSend(
+      if (hasCsvMemo) {
+        const tx = await client.sign(
+          firstAccount.address,
+          msgAnyArray,
+          {
+            amount: [
+              {
+                denom: DENOM,
+                amount: `${new BigNumber(1).shiftedBy(amountNeedDigits).toFixed(0)}`,
+              },
+            ],
+            gas: `${new BigNumber(1).shiftedBy(gasNeedDigits).toFixed(0)}`,
+          },
+          MEMO,
+        );
+        try {
+          await client.broadcastTx(tx, 1000, 1000);
+        } catch (err) {
+          if (err instanceof TimeoutError) {
+            console.log(err.txId);
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        const msgAny = formatMsgSend(
+          firstAccount.address,
+          e.address,
+          e.classId,
+          removed[0].id,
+        );
+        msgAnyArray.push(msgAny);
+      }
+    }
+
+    if (msgAnyArray.length) {
+      const result = await client.signAndBroadcast(
         firstAccount.address,
-        e.address,
-        e.classId,
-        removed[0].id,
-      );
-      msgAnyArray.push(msgAny);
-    });
-
-    const fee = {
-      amount: [
+        msgAnyArray,
         {
-          denom: DENOM,
-          amount: `${new BigNumber(msgAnyArray.length).shiftedBy(amountNeedDigits).toFixed(0)}`,
+          amount: [
+            {
+              denom: DENOM,
+              amount: `${new BigNumber(data.length).shiftedBy(amountNeedDigits).toFixed(0)}`,
+            },
+          ],
+          gas: `${new BigNumber(data.length).shiftedBy(gasNeedDigits).toFixed(0)}`,
         },
-      ],
-      gas: `${new BigNumber(msgAnyArray.length).shiftedBy(gasNeedDigits).toFixed(0)}`,
-    };
-
-    const result = await client.signAndBroadcast(
-      firstAccount.address,
-      msgAnyArray,
-      fee,
-      MEMO,
-    );
-    // eslint-disable-next-line no-console
-    console.log(result);
+        MEMO,
+      );
+      // eslint-disable-next-line no-console
+      console.log(result);
+    }
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error);
