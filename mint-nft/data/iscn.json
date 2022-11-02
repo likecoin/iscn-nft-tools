@@ -1,0 +1,19 @@
+{
+	"contentMetadata": {
+		"url": "",
+		"name": "",
+		"@type": "CreativeWork",
+		"version": 1,
+		"@context": "http://schema.org/",
+		"keywords": "",
+		"usageInfo": "",
+		"description": ""
+	},
+	"stakeholders": [],
+	"contentFingerprints": [
+		"hash://sha256/52a3dfc1008a0dabc48051664cc04ac9c0295f48925c4958e060d054e49abb3c",
+		"ipfs://QmVsa6WuHLiZtyfwQrFjgxwLvVqMPsvvvusTdCKmTyqkca",
+		"ar://e-bMr7c3O_sm20zb7X5Vu870Q8b-Pc7eIxmjYXgJmsI"
+	],
+	"recordNotes": ""
+}
