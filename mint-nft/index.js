@@ -9,6 +9,18 @@ import {
   // eslint-disable-next-line import/extensions
 } from './config/config.js';
 
+function addParamToUrl(url, params) {
+  const urlObject = new URL(url);
+  const urlParams = new URLSearchParams(urlObject.search);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      urlParams.set(key, value);
+    }
+  });
+  urlObject.search = urlParams.toString();
+  return urlObject.toString();
+}
+
 async function createNFTSigningClient() {
   const signer = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' });
   const [account] = await signer.getAccounts();
@@ -29,13 +41,26 @@ async function createISCNFromJSON(signingClient, account) {
   return iscnId;
 }
 
-async function createNFTClassFromJSON(iscnID, signingClient, account, { nftMaxSupply } = {}) {
+async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply } = {}) {
   const content = readFileSync(path.join(__dirname, './data/nft.json'));
   const data = JSON.parse(content);
   console.log(`Creating NFT Class - ${data.name}`);
+
   let classConfig = null;
   if (nftMaxSupply) classConfig = { nftMaxSupply };
-  const res = await signingClient.createNFTClass(account.address, iscnID, data, classConfig);
+
+  let { uri } = data;
+  const isUriHttp = uri && uri.startsWith('https://');
+  if (isUriHttp) uri = addParamToUrl(uri, { iscn_id: iscnId });
+  const res = await signingClient.createNFTClass(
+    account.address,
+    iscnId,
+    {
+      ...data,
+      uri,
+    },
+    classConfig,
+  );
   console.log(`Creating NFT Class - Completed ${res.transactionHash}`);
   const rawLogs = JSON.parse(res.rawLog);
   const event = rawLogs[0].events.find(
@@ -54,14 +79,20 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
   const res = await signingClient.mintNFTs(
     account.address,
     classId,
-    [...Array(nftCount).keys()].map((i) => ({
-      id: `${i}`,
-      uri: data.uri,
-      metadata: {
-        name: data.name,
-        image: data.image,
-      },
-    })),
+    [...Array(nftCount).keys()].map((i) => {
+      const id = `${i}`;
+      let { uri } = data;
+      const isUriHttp = uri && uri.startsWith('https://');
+      if (isUriHttp) uri = addParamToUrl(uri, { class_id: classId, nft_id: id });
+      return {
+        id,
+        uri,
+        metadata: {
+          name: data.name,
+          image: data.image,
+        },
+      };
+    }),
   );
   console.log(`Minting NFTs - Completed ${res.transactionHash}`);
 }
@@ -74,7 +105,7 @@ Optional Parameters:
   --iscn-id: Use existing ISCN ID. If ISCN ID is not set, data in ./data/iscn.json will be used.
   --class-id: Use existing NFT class ID.  If NFT class ID is not set, data in ./data/nft.json will be used.
   --nft-max-supply: Define max supply for new NFT class
-  `)
+  `);
 }
 
 async function run() {
@@ -82,10 +113,12 @@ async function run() {
   const {
     nftCount,
     nftMaxSupply,
+    help,
+  } = args;
+  let {
     iscnId,
     classId,
-    help,
-  } = args
+  } = args;
   if (help) {
     printHelp();
     return;
