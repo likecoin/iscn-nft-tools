@@ -5,6 +5,7 @@ import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { ISCNSigningClient } from '@likecoin/iscn-js';
 import yargsParser from 'yargs-parser';
+import { v4 as uuidv4 } from 'uuid'
 import {
   MNEMONIC, RPC_ENDPOINT,
   // eslint-disable-next-line import/extensions
@@ -86,7 +87,7 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
     account.address,
     classId,
     [...Array(nftCount).keys()].map((i) => {
-      const id = `${i}`;
+      const id = `nft-${uuidv4()}`;
       let { uri } = data;
       const isUriHttp = uri && uri.startsWith('https://');
       if (isUriHttp) uri = addParamToUrl(uri, { class_id: classId, nft_id: id });
