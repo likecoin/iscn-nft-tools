@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { ISCNSigningClient } from '@likecoin/iscn-js';
@@ -8,6 +9,9 @@ import {
   MNEMONIC, RPC_ENDPOINT,
   // eslint-disable-next-line import/extensions
 } from './config/config.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function addParamToUrl(url, params) {
   const urlObject = new URL(url);
@@ -32,7 +36,8 @@ async function createNFTSigningClient() {
 async function createISCNFromJSON(signingClient, account) {
   const content = readFileSync(path.join(__dirname, './data/iscn.json'));
   const data = JSON.parse(content);
-  console.log(`Creating ISCN - ${data.name}`);
+  if (!data || !data.contentMetadata) throw new Error('Invalid ISCN data json');
+  console.log(`Creating ISCN - ${data.contentMetadata.name}`);
   const res = await signingClient.createISCNRecord(account.address, data);
   console.log(`Creating ISCN - Completed ${res.transactionHash}`);
   const queryClient = await signingClient.getISCNQueryClient();
@@ -44,6 +49,7 @@ async function createISCNFromJSON(signingClient, account) {
 async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply } = {}) {
   const content = readFileSync(path.join(__dirname, './data/nft.json'));
   const data = JSON.parse(content);
+  if (!data || !data.name) throw new Error('Invalid ISCN data json');
   console.log(`Creating NFT Class - ${data.name}`);
 
   let classConfig = null;
@@ -125,10 +131,12 @@ async function run() {
   }
   if (!nftCount || !Number(nftCount)) {
     console.error('Invalid NFT count');
+    printHelp();
     return;
   }
   if (nftMaxSupply && !Number(nftMaxSupply)) {
     console.error('Invalid NFT max supply');
+    printHelp();
     return;
   }
   try {
