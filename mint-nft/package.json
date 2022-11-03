@@ -16,7 +16,8 @@
     "@cosmjs/stargate": "^0.28.13",
     "@likecoin/iscn-js": "^0.4.1",
     "bignumber.js": "^9.1.0",
-    "cosmjs-types": "^0.5.1"
+    "cosmjs-types": "^0.5.1",
+    "yargs-parser": "^21.1.1"
   },
   "devDependencies": {
     "eslint": "^8.23.0",

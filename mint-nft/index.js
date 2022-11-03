@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { ISCNSigningClient } from '@likecoin/iscn-js';
+import yargsParser from 'yargs-parser';
 import {
   MNEMONIC, RPC_ENDPOINT,
   // eslint-disable-next-line import/extensions
@@ -28,11 +29,13 @@ async function createISCNFromJSON(signingClient, account) {
   return iscnId;
 }
 
-async function createNFTClassFromJSON(iscnID, signingClient, account) {
+async function createNFTClassFromJSON(iscnID, signingClient, account, { nftMaxSupply } = {}) {
   const content = readFileSync(path.join(__dirname, './data/nft.json'));
   const data = JSON.parse(content);
   console.log(`Creating NFT Class - ${data.name}`);
-  const res = await signingClient.createNFTClass(account.address, iscnID, data);
+  let classConfig = null;
+  if (nftMaxSupply) classConfig = { nftMaxSupply };
+  const res = await signingClient.createNFTClass(account.address, iscnID, data, classConfig);
   console.log(`Creating NFT Class - Completed ${res.transactionHash}`);
   const rawLogs = JSON.parse(res.rawLog);
   const event = rawLogs[0].events.find(
@@ -63,17 +66,54 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
   console.log(`Minting NFTs - Completed ${res.transactionHash}`);
 }
 
+function printHelp() {
+  console.log(`Usage: node index.js --nft-count 100
+Required Paramters:
+  --nft-count: How many NFT to mint
+Optional Parameters:
+  --iscn-id: Use existing ISCN ID. If ISCN ID is not set, data in ./data/iscn.json will be used.
+  --class-id: Use existing NFT class ID.  If NFT class ID is not set, data in ./data/nft.json will be used.
+  --nft-max-supply: Define max supply for new NFT class
+  `)
+}
+
 async function run() {
-  const args = process.argv.slice(2);
-  const nftCount = args[0] || 100;
-  let iscnId = args[1] || '';
-  let classId;
+  const args = yargsParser(process.argv.slice(2));
+  const {
+    nftCount,
+    nftMaxSupply,
+    iscnId,
+    classId,
+    help,
+  } = args
+  if (help) {
+    printHelp();
+    return;
+  }
+  if (!nftCount || !Number(nftCount)) {
+    console.error('Invalid NFT count');
+    return;
+  }
+  if (nftMaxSupply && !Number(nftMaxSupply)) {
+    console.error('Invalid NFT max supply');
+    return;
+  }
   try {
     const { account, client: signingClient } = await createNFTSigningClient();
     console.log(`Using ${account.address} to mint NFT`);
-    if (!iscnId) iscnId = await createISCNFromJSON(signingClient, account);
-    if (!classId) classId = await createNFTClassFromJSON(iscnId, signingClient, account);
-    await mintNFTsFromJSON(classId, nftCount, signingClient, account);
+    if (!classId) {
+      if (!iscnId) {
+        iscnId = await createISCNFromJSON(signingClient, account);
+      } else {
+        console.log(`Using existing ISCN ID ${iscnId}`);
+      }
+    }
+    if (!classId) {
+      classId = await createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply });
+    } else {
+      console.log(`Using existing NFT Class ID ${classId}`);
+    }
+    await mintNFTsFromJSON(classId, Number(nftCount), signingClient, account);
   } catch (error) {
     console.error(error);
   }
