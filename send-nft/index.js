@@ -60,6 +60,18 @@ async function getNFTs({ classId = '', owner = '', needCount }) {
   return { nfts };
 }
 
+function getGasFee(count) {
+  return {
+    amount: [
+      {
+        denom: DENOM,
+        amount: `${new BigNumber(count).shiftedBy(amountNeedDigits).toFixed(0)}`,
+      },
+    ],
+    gas: `${new BigNumber(count).shiftedBy(gasNeedDigits).toFixed(0)}`,
+  };
+}
+
 async function run() {
   try {
     const data = await readCsv('list.csv');
@@ -69,7 +81,7 @@ async function run() {
     const nftsDataObject = {};
     const nftCountObject = data.reduce((object, item) => {
       // eslint-disable-next-line no-param-reassign
-      object[item.classId] = (object[item.classId] || 1) + 1;
+      object[item.classId] = (object[item.classId] || 0) + 1;
       return object;
     }, {});
 
@@ -104,7 +116,7 @@ async function run() {
     const signingClient = await createNFTSigningClient(signer);
     const client = signingClient.getSigningStargateClient();
 
-    const hasCsvMemo = !!data.find((e) => !!e.memo);
+    const hasCsvMemo = data.some((e) => e.memo);
 
     const msgAnyArray = [];
     for (let i = 0; i < data.length; i += 1) {
@@ -114,16 +126,8 @@ async function run() {
         const tx = await client.sign(
           firstAccount.address,
           msgAnyArray,
-          {
-            amount: [
-              {
-                denom: DENOM,
-                amount: `${new BigNumber(1).shiftedBy(amountNeedDigits).toFixed(0)}`,
-              },
-            ],
-            gas: `${new BigNumber(1).shiftedBy(gasNeedDigits).toFixed(0)}`,
-          },
-          MEMO,
+          getGasFee(1),
+          e.memo || MEMO,
         );
         try {
           await client.broadcastTx(tx, 1000, 1000);
@@ -149,15 +153,7 @@ async function run() {
       const result = await client.signAndBroadcast(
         firstAccount.address,
         msgAnyArray,
-        {
-          amount: [
-            {
-              denom: DENOM,
-              amount: `${new BigNumber(data.length).shiftedBy(amountNeedDigits).toFixed(0)}`,
-            },
-          ],
-          gas: `${new BigNumber(data.length).shiftedBy(gasNeedDigits).toFixed(0)}`,
-        },
+        getGasFee(data.length),
         MEMO,
       );
       // eslint-disable-next-line no-console
