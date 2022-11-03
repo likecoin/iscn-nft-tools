@@ -4,10 +4,11 @@ import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
 import fs from 'fs';
 import neatCsv from 'neat-csv';
 import BigNumber from 'bignumber.js';
-// eslint-disable-next-line import/extensions
+/* eslint-disable import/extensions */
 import { formatMsgSend } from '@likecoin/iscn-js/dist/messages/likenft.js';
-// eslint-disable-next-line import/extensions
 import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination.js';
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx.js';
+/* eslint-enable import/extensions */
 import {
   MNEMONIC, WAIT_TIME, RPC_ENDPOINT, DENOM, MEMO,
   // eslint-disable-next-line import/extensions
@@ -129,7 +130,12 @@ async function run() {
       if (hasCsvMemo) {
         const tx = await client.sign(
           firstAccount.address,
-          msgAnyArray,
+          [formatMsgSend(
+            firstAccount.address,
+            e.address,
+            e.classId,
+            removed[0].id,
+          )],
           getGasFee(1),
           e.memo || MEMO,
           {
@@ -140,7 +146,9 @@ async function run() {
         );
         currentSequence += 1;
         try {
-          await client.broadcastTx(tx, 1000, 1000);
+          const txBytes = TxRaw.encode(tx).finish();
+          const res = await client.broadcastTx(txBytes, 1000, 1000);
+          console.log(res);
         } catch (err) {
           if (err instanceof TimeoutError) {
             console.log(err.txId);
