@@ -118,7 +118,11 @@ async function run() {
 
     const hasCsvMemo = data.some((e) => e.memo);
 
+    const { accountNumber, sequence } = await client.getSequence(firstAccount.address);
+    const chainId = await client.getChainId();
+
     const msgAnyArray = [];
+    let currentSequence = sequence;
     for (let i = 0; i < data.length; i += 1) {
       const e = data[i];
       const removed = nftsDataObject[e.classId].splice(0, 1);
@@ -128,7 +132,13 @@ async function run() {
           msgAnyArray,
           getGasFee(1),
           e.memo || MEMO,
+          {
+            accountNumber,
+            sequence: currentSequence,
+            chainId,
+          },
         );
+        currentSequence += 1;
         try {
           await client.broadcastTx(tx, 1000, 1000);
         } catch (err) {
