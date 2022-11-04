@@ -127,15 +127,16 @@ async function run() {
     for (let i = 0; i < data.length; i += 1) {
       const e = data[i];
       const removed = nftsDataObject[e.classId].splice(0, 1);
+      const msgSend = formatMsgSend(
+        firstAccount.address,
+        e.address,
+        e.classId,
+        removed[0].id,
+      );
       if (hasCsvMemo) {
         const tx = await client.sign(
           firstAccount.address,
-          [formatMsgSend(
-            firstAccount.address,
-            e.address,
-            e.classId,
-            removed[0].id,
-          )],
+          [msgSend],
           getGasFee(1),
           e.memo || MEMO,
           {
@@ -157,13 +158,7 @@ async function run() {
           }
         }
       } else {
-        const msgAny = formatMsgSend(
-          firstAccount.address,
-          e.address,
-          e.classId,
-          removed[0].id,
-        );
-        msgAnyArray.push(msgAny);
+        msgAnyArray.push(msgSend);
       }
     }
 
