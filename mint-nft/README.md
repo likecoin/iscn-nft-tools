@@ -10,16 +10,26 @@ Run with `node.js = 14`
 npm install
 ```
 
-## Configuration
-
-Change the data in `./list.csv` (reference `./list_example.csv`)
-
-Change the data in `./config/config.js`
-
-Where `MNEMONIC` is your mnemonic phrase , `WAIT_TIME` is wait time after console (before send)
-
 ## Usage
 
 ```bash
-node index.js
+Usage:
+  MNEMONIC="...." node index.js --nft-count 100
+
+Required Paramters:
+  --nft-count: How many NFT to mint
+
+Optional Parameters:
+  --iscn-id: Use existing ISCN ID. If ISCN ID is not set, data in ./data/iscn.json will be used.
+  --class-id: Use existing NFT class ID.  If NFT class ID is not set, data in ./data/nft.json will be used.
+  --nft-max-supply: Define max supply for new NFT class
+
 ```
+
+## Configuration
+
+When creating new [ISCN](https://iscn.io), change the ISCN data in `./data/iscn.json`
+
+When creating new [NFT class](https://docs.like.co/developer/likenft/metadata) or minting, change the data in `./data/nft.json`
+
+Set environment variable `MNEMONIC`, which is your mnemonic phrase, when running the script
