@@ -37,6 +37,7 @@ async function createNFTSigningClient() {
 }
 
 async function createISCNFromJSON(signingClient, account) {
+  console.log('Creating ISCN - Reading data from ./data/iscn.json...');
   const content = readFileSync(path.join(__dirname, './data/iscn.json'));
   const data = JSON.parse(content);
   if (!data || !data.contentMetadata) throw new Error('Invalid ISCN data json');
@@ -50,9 +51,10 @@ async function createISCNFromJSON(signingClient, account) {
 }
 
 async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply } = {}) {
+  console.log('Creating NFT Class - Reading data from ./data/nft.json...');
   const content = readFileSync(path.join(__dirname, './data/nft.json'));
   const data = JSON.parse(content);
-  if (!data || !data.name) throw new Error('Invalid ISCN data json');
+  if (!data || !data.name) throw new Error('Invalid NFT data json');
   console.log(`Creating NFT Class - ${data.name}`);
 
   let classConfig = null;
@@ -82,9 +84,11 @@ async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSu
 }
 
 async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
+  console.log('Minting NFTs - Reading data from ./data/nft.json...');
   const content = readFileSync(path.join(__dirname, './data/nft.json'));
   const data = JSON.parse(content);
-  console.log(`Minting ${nftCount} NFTs`);
+  if (!data || !data.name) throw new Error('Invalid NFT data json');
+  console.log(`Minting ${nftCount} NFTs - ${data.name}`);
   const res = await signingClient.mintNFTs(
     account.address,
     classId,
@@ -107,9 +111,12 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
 }
 
 function printHelp() {
-  console.log(`Usage: node index.js --nft-count 100
+  console.log(`Usage:
+  MNEMONIC="...." node index.js --nft-count 100
+
 Required Paramters:
   --nft-count: How many NFT to mint
+
 Optional Parameters:
   --iscn-id: Use existing ISCN ID. If ISCN ID is not set, data in ./data/iscn.json will be used.
   --class-id: Use existing NFT class ID.  If NFT class ID is not set, data in ./data/nft.json will be used.
@@ -118,6 +125,11 @@ Optional Parameters:
 }
 
 async function run() {
+  if (!MNEMONIC) {
+    console.error('MNEMONIC is not defined in env!');
+    printHelp();
+    return;
+  }
   const args = yargsParser(process.argv.slice(2));
   const {
     nftCount,
