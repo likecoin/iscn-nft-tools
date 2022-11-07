@@ -154,6 +154,16 @@ async function run() {
     printHelp();
     return;
   }
+  if (classId && nftMaxSupply) {
+    console.error('Cannot set max supply for existing class');
+    printHelp();
+    return;
+  }
+  if (nftCount >= nftMaxSupply) {
+    console.error('NFT count larger than max supply');
+    printHelp();
+    return;
+  }
   try {
     const { account, client: signingClient } = await createNFTSigningClient();
     console.log(`Using ${account.address} to mint NFT`);
