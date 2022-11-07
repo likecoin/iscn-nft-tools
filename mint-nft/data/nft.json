@@ -1,0 +1,14 @@
+{
+	"name": "Book NFT #1",
+	"description": "",
+	"symbol": "BOOK",
+	"uri": "https://api.like.co/likernft/metadata/?class_id=likenft1yhsps5l8tmeuy9y7k0rjpx97cl67cjkjnzkycecw5xrvjjp6c5yqz0ttmc",
+	"metadata": {
+		"image": "https://ckxpress.com/wp-content/uploads/sites/8/2022/03/openbook.jpeg",
+		"external_url": "https://ckxpress.com/nft-immigrant-to-native/",
+		"message": "Thanks for purchasing my NFT!",
+        "nft_meta_collection_id": "ckxpress_book_nft",
+        "nft_meta_collection_name": "Book NFT",
+        "nft_meta_collection_descrption": "Book NFT by ckxpress"
+	}
+}
