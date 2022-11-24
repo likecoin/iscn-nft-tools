@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 const LIKER_NFT_FEE_WALLET = 'like10ywsmztkxjl55xarxnhlxwc83z9v2hkxtsajwl';
 const royaltyRateBasisPoints = 1000; // 10% as in current chain config
 const royaltyFeeAmount = 25000; // 2.5%
-const royaltyTotalAmount = 975000; // 1000000 - fee
+const royaltyUserAmount = 1000000 - royaltyFeeAmount; // 1000000 - fee
 
 function addParamToUrl(url, params) {
   const urlObject = new URL(url);
@@ -93,7 +93,7 @@ async function createRoyaltyConfig(classId, iscnId, signingClient, account) {
   try {
     const rateBasisPoints = royaltyRateBasisPoints;
     const feeAmount = royaltyFeeAmount;
-    const totalAmount = royaltyTotalAmount;
+    const totalAmount = royaltyUserAmount;
     const queryClient = await signingClient.getISCNQueryClient();
     const res = await queryClient.queryRecordsById(iscnId);
     if (!res) throw new Error('ISCN NOT FOUND');
