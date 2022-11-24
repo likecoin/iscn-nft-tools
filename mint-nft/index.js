@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { ISCNSigningClient } from '@likecoin/iscn-js';
-import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing';
+// eslint-disable-next-line import/extensions
+import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing.js';
 import yargsParser from 'yargs-parser';
 import { v4 as uuidv4 } from 'uuid';
 import {
