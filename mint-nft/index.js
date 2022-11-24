@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { ISCNSigningClient } from '@likecoin/iscn-js';
+import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing';
 import yargsParser from 'yargs-parser';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -15,6 +16,11 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 /* eslint-enable no-underscore-dangle */
+
+const LIKER_NFT_FEE_WALLET = 'like10ywsmztkxjl55xarxnhlxwc83z9v2hkxtsajwl';
+const royaltyRateBasisPoints = 1000; // 10% as in current chain config
+const royaltyFeeAmount = 25000; // 2.5%
+const royaltyUserAmount = 1000000 - royaltyFeeAmount; // 1000000 - fee
 
 function addParamToUrl(url, params) {
   const urlObject = new URL(url);
@@ -81,6 +87,53 @@ async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSu
   const classId = ((attribute && attribute.value) || '').replace(/^"(.*)"$/, '$1');
   console.log(`Creating NFT Class - NFT Class ID: ${classId}`);
   return classId;
+}
+
+async function createRoyaltyConfig(classId, iscnId, signingClient, account) {
+  try {
+    const rateBasisPoints = royaltyRateBasisPoints;
+    const feeAmount = royaltyFeeAmount;
+    const totalAmount = royaltyUserAmount;
+    const queryClient = await signingClient.getISCNQueryClient();
+    const res = await queryClient.queryRecordsById(iscnId);
+    if (!res) throw new Error('ISCN NOT FOUND');
+    const { owner: iscnOwner, records: [record] } = res;
+    const rewardMap = await parseAndCalculateStakeholderRewards(
+      record,
+      iscnOwner,
+      {
+        precision: 0,
+        totalAmount,
+      },
+    );
+    const rewards = Array.from(rewardMap.entries());
+    const stakeholders = rewards.map((r) => {
+      const [
+        address,
+        { amount },
+      ] = r;
+      return {
+        account: address,
+        weight: parseInt(amount, 10),
+      };
+    });
+    stakeholders.push({
+      account: LIKER_NFT_FEE_WALLET,
+      weight: feeAmount,
+    });
+    await signingClient.createRoyaltyConfig(
+      account,
+      classId,
+      {
+        rateBasisPoints,
+        stakeholders,
+      },
+    );
+  } catch (err) {
+    // Don't throw on royalty create, not critical for now
+    // eslint-disable-next-line no-console
+    console.error(err);
+  }
 }
 
 async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
@@ -176,6 +229,7 @@ async function run() {
     }
     if (!classId) {
       classId = await createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply });
+      await createRoyaltyConfig(classId, iscnId, signingClient, account);
     } else {
       console.log(`Using existing NFT Class ID ${classId}`);
     }

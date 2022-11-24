@@ -14,7 +14,7 @@
   "dependencies": {
     "@cosmjs/proto-signing": "^0.28.13",
     "@cosmjs/stargate": "^0.28.13",
-    "@likecoin/iscn-js": "^0.4.1",
+    "@likecoin/iscn-js": "^0.5.0",
     "bignumber.js": "^9.1.0",
     "cosmjs-types": "^0.5.1",
     "uuid": "^9.0.0",
