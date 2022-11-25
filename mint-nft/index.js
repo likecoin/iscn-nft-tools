@@ -58,8 +58,8 @@ async function createISCNFromJSON(signingClient, account) {
 }
 
 async function createNFTClassFromJSON(iscnId, signingClient, account, { nftMaxSupply } = {}) {
-  console.log('Creating NFT Class - Reading data from ./data/nft.json...');
-  const content = readFileSync(path.join(__dirname, './data/nft.json'));
+  console.log('Creating NFT Class - Reading data from ./data/nft_class.json...');
+  const content = readFileSync(path.join(__dirname, './data/nft_class.json'));
   const data = JSON.parse(content);
   if (!data || !data.name) throw new Error('Invalid NFT data json');
   console.log(`Creating NFT Class - ${data.name}`);
@@ -138,11 +138,13 @@ async function createRoyaltyConfig(classId, iscnId, signingClient, account) {
 }
 
 async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
-  console.log('Minting NFTs - Reading data from ./data/nft.json...');
-  const content = readFileSync(path.join(__dirname, './data/nft.json'));
-  const data = JSON.parse(content);
-  if (!data || !data.name) throw new Error('Invalid NFT data json');
-  console.log(`Minting ${nftCount} NFTs - ${data.name}`);
+  console.log('Minting NFTs - Reading default data from ./data/nfts_default.json...');
+  const content = readFileSync(path.join(__dirname, './data/nfts_default.json'));
+  const defaultData = JSON.parse(content);
+  if (!defaultData || !defaultData.uri) throw new Error('Invalid NFT data json');
+  console.log('Minting NFTs - Reading NFT data from ./data/nfts.csv...');
+  const listData = await readCsv(path.join(__dirname, './data/nfts.csv'));
+  console.log(`Minting ${nftCount} NFTs - ${defaultData.metadata.name}`);
   const res = await signingClient.mintNFTs(
     account.address,
     classId,
