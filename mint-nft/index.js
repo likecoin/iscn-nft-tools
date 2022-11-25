@@ -123,7 +123,7 @@ async function createRoyaltyConfig(classId, iscnId, signingClient, account) {
       weight: feeAmount,
     });
     await signingClient.createRoyaltyConfig(
-      account,
+      account.address,
       classId,
       {
         rateBasisPoints,
