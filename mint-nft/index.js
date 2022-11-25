@@ -8,6 +8,7 @@ import { ISCNSigningClient } from '@likecoin/iscn-js';
 import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing.js';
 import yargsParser from 'yargs-parser';
 import { v4 as uuidv4 } from 'uuid';
+import neatCsv from 'neat-csv';
 import {
   MNEMONIC, RPC_ENDPOINT,
   // eslint-disable-next-line import/extensions
@@ -33,6 +34,12 @@ function addParamToUrl(url, params) {
   });
   urlObject.search = urlParams.toString();
   return urlObject.toString();
+}
+
+async function readCsv(csvPath) {
+  const csv = readFileSync(csvPath);
+  const data = await neatCsv(csv);
+  return data;
 }
 
 async function createNFTSigningClient() {
@@ -141,16 +148,28 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
   console.log('Minting NFTs - Reading default data from ./data/nfts_default.json...');
   const content = readFileSync(path.join(__dirname, './data/nfts_default.json'));
   const defaultData = JSON.parse(content);
-  if (!defaultData || !defaultData.uri) throw new Error('Invalid NFT data json');
+  if (!defaultData || defaultData.uri === undefined) throw new Error('Invalid NFT data json');
   console.log('Minting NFTs - Reading NFT data from ./data/nfts.csv...');
   const listData = await readCsv(path.join(__dirname, './data/nfts.csv'));
   console.log(`Minting ${nftCount} NFTs - ${defaultData.metadata.name}`);
+  if (listData.length && listData.length !== nftCount) throw new Error('NFT data length and nft count not match');
+  const defaultURI = defaultData.uri;
+  const defaultMetadata = defaultData.metadata;
   const res = await signingClient.mintNFTs(
     account.address,
     classId,
-    [...Array(nftCount).keys()].map(() => {
-      const id = `nft-${uuidv4()}`;
-      let { uri } = data;
+    [...Array(nftCount).keys()].map((i) => {
+      const {
+        nftId,
+        uri: dataUri,
+        image: dataImage,
+        metadata: dataMetadataString,
+      } = listData[i];
+      const dataMetadata = JSON.parse(dataMetadataString || '{}');
+      const data = { ...defaultMetadata, ...dataMetadata };
+      if (dataImage) data.image = dataImage;
+      const id = nftId || `nft-${uuidv4()}`;
+      let uri = dataUri || defaultURI || '';
       const isUriHttp = uri && uri.startsWith('https://');
       if (isUriHttp) uri = addParamToUrl(uri, { class_id: classId, nft_id: id });
       return {
