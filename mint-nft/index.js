@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
@@ -9,6 +9,8 @@ import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn
 import yargsParser from 'yargs-parser';
 import { v4 as uuidv4 } from 'uuid';
 import neatCsv from 'neat-csv';
+// eslint-disable-next-line import/no-unresolved
+import { stringify } from 'csv-stringify/sync';
 import {
   MNEMONIC, RPC_ENDPOINT,
   // eslint-disable-next-line import/extensions
@@ -155,31 +157,34 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
   if (listData.length && listData.length !== nftCount) throw new Error('NFT data length and nft count not match');
   const defaultURI = defaultData.uri;
   const defaultMetadata = defaultData.metadata;
+  const nfts = [...Array(nftCount).keys()].map((i) => {
+    const {
+      nftId,
+      uri: dataUri,
+      image: dataImage,
+      metadata: dataMetadataString,
+    } = listData[i];
+    const dataMetadata = JSON.parse(dataMetadataString || '{}');
+    const data = { ...defaultMetadata, ...dataMetadata };
+    if (dataImage) data.image = dataImage;
+    const id = nftId || `nft-${uuidv4()}`;
+    let uri = dataUri || defaultURI || '';
+    const isUriHttp = uri && uri.startsWith('https://');
+    if (isUriHttp) uri = addParamToUrl(uri, { class_id: classId, nft_id: id });
+    return {
+      id,
+      uri,
+      metadata: data,
+    };
+  });
   const res = await signingClient.mintNFTs(
     account.address,
     classId,
-    [...Array(nftCount).keys()].map((i) => {
-      const {
-        nftId,
-        uri: dataUri,
-        image: dataImage,
-        metadata: dataMetadataString,
-      } = listData[i];
-      const dataMetadata = JSON.parse(dataMetadataString || '{}');
-      const data = { ...defaultMetadata, ...dataMetadata };
-      if (dataImage) data.image = dataImage;
-      const id = nftId || `nft-${uuidv4()}`;
-      let uri = dataUri || defaultURI || '';
-      const isUriHttp = uri && uri.startsWith('https://');
-      if (isUriHttp) uri = addParamToUrl(uri, { class_id: classId, nft_id: id });
-      return {
-        id,
-        uri,
-        metadata: data,
-      };
-    }),
+    nfts,
   );
   console.log(`Minting NFTs - Completed ${res.transactionHash}`);
+  const csvData = stringify(nfts, { header: true });
+  writeFileSync(path.join(__dirname, './data/nfts_output.csv'), csvData);
 }
 
 function printHelp() {
