@@ -175,10 +175,7 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
       return {
         id,
         uri,
-        metadata: {
-          name: data.name,
-          image: data.image,
-        },
+        metadata: data,
       };
     }),
   );
