@@ -58,7 +58,9 @@ async function createISCNFromJSON(signingClient, account) {
   const data = JSON.parse(content);
   if (!data || !data.contentMetadata) throw new Error('Invalid ISCN data json');
   console.log(`Creating ISCN - ${data.contentMetadata.name}`);
-  const res = await signingClient.createISCNRecord(account.address, data);
+  const { contentMetadata, ...otherData } = data;
+  const parsedData = { ...otherData, ...contentMetadata };
+  const res = await signingClient.createISCNRecord(account.address, parsedData);
   console.log(`Creating ISCN - Completed ${res.transactionHash}`);
   const queryClient = await signingClient.getISCNQueryClient();
   const [iscnId] = await queryClient.queryISCNIdsByTx(res.transactionHash);
