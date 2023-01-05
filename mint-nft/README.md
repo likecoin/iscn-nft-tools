@@ -40,18 +40,18 @@ Procedure:
 
 On production chain
 ```bash
-MNEMONIC="...." node index.js --nft-count nnn
+MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT}
 ```
 <br>
 
 On testnet
 ```bash
-IS_TESTNET=TRUE MNEMONIC="...." node index.js --nft-count nnn
+IS_TESTNET=TRUE MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT}
 ```
 
 <br>
 
-| Parameter | Argument | Example | Mandatory? |
+| Parameter | Argument | Example | Required |
 | --- | --- | --- | --- |
 | nft-count | An integer.  Total number of NFT to be minted. | --nft-count 100 | YES |
 | iscn-id | A string.  The ISCN ID that the NFT is referring to.  The script will register one based on iscn.json if not specified. | --iscn-id iscn://likecoin-chain/IKI9PueuJiOsYvhN6z9jPJIm3UGMh17BQ3tEwEzslQo/3  | NO |
@@ -136,7 +136,7 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 
 The page of a group of NFTs.
 
-Example:
+Testnet Example:
 
 [https://rinkeby.liker.land/nft/class/likenft1q7uzcmmu54h28ynuyvpx2mffj34wvrhyaf84df3paztaftyxy0fq4dzf49](https://rinkeby.liker.land/nft/class/likenft1q7uzcmmu54h28ynuyvpx2mffj34wvrhyaf84df3paztaftyxy0fq4dzf49)
 
@@ -144,7 +144,7 @@ Example:
 
 The page of a particular NFT.
 
-Example:
+Testnet Example:
 
 [https://rinkeby.liker.land/nft/class/likenft1q7uzcmmu54h28ynuyvpx2mffj34wvrhyaf84df3paztaftyxy0fq4dzf49/moneyverse0001](https://rinkeby.liker.land/nft/class/likenft1q7uzcmmu54h28ynuyvpx2mffj34wvrhyaf84df3paztaftyxy0fq4dzf49/moneyverse0001)
 

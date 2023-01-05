@@ -11,9 +11,8 @@
 [twitter link]: https://twitter.com/@likecoin
 [Liker Land link]: https://liker.land
 [cosmossdk]: https://v1.cosmos.network/sdk
-[keplr link]: https://chrome.google.com/webstore/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap
+[keplr link]: https://www.keplr.app/download
 [docs link]: https://docs.like.co
-[Liker Land testbed]: https://rinkeby.liker.land
 
 </div>
 
@@ -24,7 +23,7 @@ It is the toolbox for operating NFT and ISCN on LikeCoin chain.  The toolbox aim
 # Getting Started
 
 LikeCoin is an application-specific bloclkchain for creator's economy based on [cosmossdk].
-You must have a crypto wallet address that support Cosmos ecosystem in order to use this tool.  We suggest to use [Keplr Chrome extension][keplr link].  Please refere to [LikeCoin documentation][docs link] for details about how to get started with LikeCoin. 
+You must have a LikeCoin wallet address that support Cosmos ecosystem in order to use this tool.  We suggest to use [Keplr Chrome extension][keplr link].  Please refere to [LikeCoin documentation][docs link] for details about how to get started with LikeCoin. 
 
 
 ## Table of Contents
