@@ -38,7 +38,7 @@ You must have a crypto wallet address that support Cosmos ecosystem in order to 
 
 1. git clone [https://github.com/likecoin/iscn-nft-tools](https://github.com/likecoin/iscn-nft-tools)
 
-2. In the program folder such as `mint-nft` and `send-nft`, run the command `npm install`
+2. Refer to the README.md in each program folder
 
 ---
 
@@ -54,4 +54,4 @@ You must have a crypto wallet address that support Cosmos ecosystem in order to 
 ---
 ### Testbed
 
-You can verify the script output on testnet at [Liker Land testbed][Liker Land testbed].  Testnet token (EKIL) can be obtain from a Discord bot faucet, [here](https://docs.like.co/general-guides/community/faucet-testnet) is the instruction.
+Testnet token (EKIL) can be obtain from a Discord bot faucet, [here](https://docs.like.co/general-guides/community/faucet-testnet) is the instruction.
