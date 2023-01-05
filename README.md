@@ -30,7 +30,7 @@ You must have a LikeCoin wallet address that support Cosmos ecosystem in order t
 
 1. [Installation](#installation)
 2. [Scripts](#script)
-3. [Testbed](#testbed)
+3. [Testnet](#testnet)
 
 
 ### Installation
@@ -51,6 +51,6 @@ You must have a LikeCoin wallet address that support Cosmos ecosystem in order t
 
 
 ---
-### Testbed
+### Testnet
 
 Testnet token (EKIL) can be obtain from a Discord bot faucet, [here](https://docs.like.co/general-guides/community/faucet-testnet) is the instruction.
