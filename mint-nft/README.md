@@ -2,48 +2,54 @@
 
 ![project logo](https://8565014-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F-LL4mdaVjNgL6A1--PV0-1972196547%2Fuploads%2Fgit-blob-67a9bfa664bab32a8f64e5239545677cc8c98a26%2FLCF001-key%20visual%20v4.1-1.jpg?alt=media)
 
-# LikeCoin ISCN and NFT Tools
+# mint NFT
+Mint NFT on LikeCoin chain based on metadata in JSON or given ISCN ID
 
-[[Discord]][discord link] [[Blog]][blog link] [[Twitter]][twitter link] [[Docs]][docs link] 
+[[Discord]][discord link] [[Blog]][blog link] [[Twitter]][twitter link] [[Docs]][docs link] [[Writing NFT]][Liker Land link]
 
 [discord link]: https://discord.gg/likecoin
 [blog link]: https://blog.like.co
 [twitter link]: https://twitter.com/@likecoin
 [Liker Land link]: https://liker.land
-[applikeco link]: https://app.like.co
-[cosmossdk]: https://v1.cosmos.network/sdk
-[keplr link]: https://chrome.google.com/webstore/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap
 [docs link]: https://docs.like.co
 
 </div>
-It is the toolbox for operating NFT and ISCN on LikeCoin chain.  The toolbox aims to complement the limitation of UI such as [Liker Land][Liker Land link] and [NFT Portal](applikeco link).
-
-
-# Getting Started
-
-LikeCoin is an application-specific bloclkchain for creator's economy based on [cosmossdk].
-You must have a crypto wallet address that support Cosmos ecosystem in order to use this tool.  We suggest to use [Keplr Chrome extension][keplr link].  Please refere to [LikeCoin documentation][docs link] for details about how to get started with LikeCoin. 
-
 
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [Syntax](#syntax)
+2. [Usage](#usage)
+3. [Configuration](#configuration)
 3. [Data](#data)
 4. [Glossary](#glossary)
 
 
 ### Installation
 
-1. git clone [https://github.com/likecoin/iscn-nft-tools](https://github.com/likecoin/iscn-nft-tools)
+Run with `node.js = 14`
 
-2. In the `mint-nft` folder and `send-nft` folder, run the command `npm install`
----
-### Syntax
+```bash
+npm install
+```
 
-Run on production: `MNEMONIC="yyy" node index.js --nft-count xxx`
+### Usage
 
-Run on testnet: `IS_TESTNET=TRUE MNEMONIC="yyy" node index.js --nft-count xxx`
+Procedure:
+1. Prepare the data files
+2. Run the script
+
+On production chain
+```bash
+MNEMONIC="...." node index.js --nft-count nnn
+```
+<br>
+
+On testnet
+```bash
+IS_TESTNET=TRUE MNEMONIC="...." node index.js --nft-count nnn
+```
+
+<br>
 
 | Parameter | Argument | Example | Mandatory? |
 | --- | --- | --- | --- |
@@ -51,6 +57,16 @@ Run on testnet: `IS_TESTNET=TRUE MNEMONIC="yyy" node index.js --nft-count xxx`
 | iscn-id | A string.  The ISCN ID that the NFT is referring to.  The script will register one based on iscn.json if not specified. | --iscn-id iscn://likecoin-chain/IKI9PueuJiOsYvhN6z9jPJIm3UGMh17BQ3tEwEzslQo/3  | NO |
 | class-id | A string.  The NFT class ID that the NFT belongs to.   It is used in the case to mint additional NFTs within the same Class (collection).  The script will create one based on nft-class.json if not specified. | --class-id likenft1yhsps5l8tmeuy9y7k0rjpx97cl67cjkjnzkycecw5xrvjjp6c5yqz0ttmc | NO |
 | nft-max-supply | An integer.  Maximum number of NFTs that can be minted in an NFT class.  No limitation if not specified. | --nft-max-supply 1000 | NO |
+---
+
+
+### Configuration
+
+When creating new [ISCN](https://iscn.io), change the ISCN data in `./data/iscn.json`
+
+When creating new [NFT class](https://docs.like.co/developer/likenft/metadata) or minting, change the data in `./data/nft.json`
+
+Set environment variable `MNEMONIC`, which is your mnemonic phrase; `IS_TESTNET=TRUE` if you want to mint NFT on testnet, when running the script.
 
 ---
 ### Data
@@ -59,8 +75,9 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 
 **nfts.csv**
 
-| nftId | The unique NFT ID under a specific NFT class ID.  The system will generate a random ID if it is not specified. [Format requirement](https://docs.like.co/developer/likenft/likecoin-nft-module-spec#mintnft) .   |
+| Field | Description   |
 | --- | --- |
+| nftId | The unique NFT ID under a specific NFT class ID.  The system will generate a random ID if it is not specified. [Format requirement](https://docs.like.co/developer/likenft/likecoin-nft-module-spec#mintnft) .   |
 | uri | The URI of an API to return an image that serves as the og image of the NFT, which is displayed in the NFT detail view of liker.land. The uri parameter override the “image” parameter. |
 | image | The URL of an image that serves as the og image of the NFT, which is displayed in the NFT detail view of liker.land. |
 | metadata | Metadata of the NFT image of any related parameter which is expected to be record on chain. |
@@ -69,8 +86,9 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 
 **nft_default.json**
 
-| uri | If image info is not available in nfts.csv, the image will be provided first by this this URI and second by the metadata→image field.  This uri is supposed to be a web API. |
+| Field | Description |
 | --- | --- |
+| uri | If image info is not available in nfts.csv, the image will be provided first by this this URI and second by the metadata→image field.  This uri is supposed to be a web API. |
 | metadata → name | default NFT name if the field is not specified in nfts.csv metadata |
 | metadata → description | default NFT description if the field is not specified in nfts.csv metadata |
 | metadata → image | If image info is not available in nfts.csv, the image will be provided first by this this URI and second by the metadata→image field.   |
@@ -80,8 +98,9 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 
 **nft_class.json**
 
-| name | NFT title displaying in portfolio/dashboard, class view and detail view.   |
+| Field | Description |
 | --- | --- |
+| name | NFT title displaying in portfolio/dashboard, class view and detail view.   |
 | description | NFT description displaying in class view and detail view.   |
 | symbol | Reserved |
 | uri | The URI of an API to return an image that serves as the og image of the NFT class, which is displayed in the portfolio/dashboard and class view of liker.land, and may display in detail view as well if nfts.csv and nfts_default.json are not set properly. |
@@ -96,8 +115,9 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 
 **iscn.json**
 
-| contentMetadata → url | URL of the content |
+| Field | Description |
 | --- | --- |
+| contentMetadata → url | URL of the content |
 | contentMetadata → name | Title of the ISCN |
 | contentMetadata → type | “Book” |
 | contentMetadata → version | ISCN version number |
