@@ -47,6 +47,7 @@ You must have a LikeCoin wallet address that support Cosmos ecosystem in order t
 | --- | --- |
 | [mint-nft](mint-nft) | Mint NFTs on LikeCoin chain based on metadata in JSON files or existing ISCN ID.  It is useful when minting in batch. |
 | [send-nft](send-nft) | Send NFTs in batch |
+| [send-like](send-like) | Send LIKE in batch |
 | [iscn-batch-uploader](iscn-batch-uploader) | Registering ISCN in batch |
 
 
