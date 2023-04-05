@@ -1,9 +1,9 @@
 {
-	"uri": "https://api.like.co/likernft/metadata/?class_id=likenft1yhsps5l8tmeuy9y7k0rjpx97cl67cjkjnzkycecw5xrvjjp6c5yqz0ttmc",
+	"uri": "https://api.ckxpress.com/book-nft/metadata?book_id=1",
 	"metadata": {
-		"name": "Book NFT #1",
-		"description": "",
-		"image": "https://ckxpress.com/wp-content/uploads/sites/8/2022/03/openbook.jpeg",
-		"external_url": "https://ckxpress.com/nft-immigrant-to-native/"
+		"name": "《所謂「我不投資」，就是 all in 在法定貨幣》",
+		"description": "談的是分散式金融，實踐的是分散式出版。",
+		"image": "ipfs://bafybeierwqwwtj7wynjaud2jwi5yjxfqnnthvxfky66suih5wlpjuofvey",
+		"external_url": "https://bit.ly/moneyverse-pdf"
 	}
 }

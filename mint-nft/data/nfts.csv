@@ -1,2 +1,2 @@
-nftId,uri,image,metadata
-,,ar://wg_KnUy-WvvjOtwfUFru-1Ljs02I8L6gk6Yl5lc8S0s,{}
+"nftId","uri","image","metadata"
+"moneyverse-0901","https://api.ckxpress.com/book-nft/metadata?book_id=1","ipfs://bafybeigczttgu37addo4yw3e6dd7242oooyo3afhmbs3kj4g6yuiq4fa6i","{""name"":""《所謂「我不投資」，就是 all in 在法定貨幣》"",""description"":""#0901"",""fileName"":""2-sliver-1120"",""ipfs_hash"":""ipfs://bafybeigczttgu37addo4yw3e6dd7242oooyo3afhmbs3kj4g6yuiq4fa6i"",""attributes"":{""background"":""Fade Out"",""publish_info_layout"":""Kitty-Corner"",""coins_layout"":""Random"",""coins_color"":""Sliver"",""coin_1_rotate"":{""X"":0.0028,""Z"":0.0083},""coin_2_rotate"":{""X"":0.002,""Z"":0.0068},""coin_1_position"":{""X"":186,""Y"":167},""coin_2_position"":{""X"":21,""Y"":-191}}}"
