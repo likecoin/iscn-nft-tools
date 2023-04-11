@@ -191,15 +191,16 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
 
 function printHelp() {
   console.log(`Usage:
-  MNEMONIC="...." node index.js --nft-count 100
+  MNEMONIC="...." node index.js --nft-count 100 --create-new-iscn
 
 Required Paramters:
   --nft-count: How many NFT to mint
 
 Optional Parameters:
-  --iscn-id: Use existing ISCN ID. If ISCN ID is not set, data in ./data/iscn.json will be used.
-  --class-id: Use existing NFT class ID.  If NFT class ID is not set, data in ./data/nft.json will be used.
-  --nft-max-supply: Define max supply for new NFT class
+  --create-new-iscn: Use data in ./data/iscn.json to create new ISCN record. Cannot be used with --iscn-id or --class-id.
+  --iscn-id: Use existing ISCN ID. Should be provided if --create-new-iscn is not set.
+  --class-id: Use existing NFT class ID. If NFT class ID is not set, data in ./data/nft.json will be used.
+  --nft-max-supply: Define max supply for new NFT class.
   `);
 }
 
@@ -209,8 +210,22 @@ async function run() {
     printHelp();
     return;
   }
-  const args = yargsParser(process.argv.slice(2));
+  const args = yargsParser(process.argv.slice(2), {
+    boolean: [
+      'create-new-iscn',
+      'help',
+    ],
+    string: [
+      'iscn-id',
+      'class-id',
+    ],
+    number: [
+      'nft-count',
+      'nft-max-supply',
+    ],
+  });
   const {
+    createNewIscn,
     nftCount,
     nftMaxSupply,
     help,
@@ -225,6 +240,16 @@ async function run() {
   }
   if (!nftCount || !Number(nftCount)) {
     console.error('Invalid NFT count');
+    printHelp();
+    return;
+  }
+  if (createNewIscn && (iscnId || classId)) {
+    console.error('Cannot create new ISCN and use existing ISCN ID or class ID at the same time');
+    printHelp();
+    return;
+  }
+  if (!createNewIscn && !iscnId && !classId) {
+    console.error('Either --create-new-iscn, --iscn-id, --class-id must be set');
     printHelp();
     return;
   }
