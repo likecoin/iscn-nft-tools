@@ -286,7 +286,11 @@ async function run() {
     }
     await mintNFTsFromJSON(classId, Number(nftCount), signingClient, account);
   } catch (error) {
-    console.error(error);
+    if (error.message && error.message.includes('Code: 4') && error.message.includes('is not authorized')) {
+      console.error(`The wallet does not own the ISCN ID ${iscnId} or NFT Class ID ${classId}`);
+    } else {
+      console.error(error);
+    }
   }
 }
 
