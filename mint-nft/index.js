@@ -191,14 +191,14 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
 
 function printHelp() {
   console.log(`Usage:
-  MNEMONIC="...." node index.js --nft-count 100 --create-new-iscn
+  MNEMONIC="...." node index.js --nft-count 100 --iscn-id iscn://xxx
 
 Required Paramters:
   --nft-count: How many NFT to mint
 
 Optional Parameters:
-  --create-new-iscn: Use data in ./data/iscn.json to create new ISCN record. Cannot be used with --iscn-id or --class-id.
   --iscn-id: Use existing ISCN ID. Should be provided if --create-new-iscn is not set.
+  --create-new-iscn: Use data in ./data/iscn.json to create new ISCN record. Cannot be used with --iscn-id or --class-id.
   --class-id: Use existing NFT class ID. If NFT class ID is not set, data in ./data/nft.json will be used.
   --nft-max-supply: Define max supply for new NFT class.
   `);
