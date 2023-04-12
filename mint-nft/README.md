@@ -33,11 +33,9 @@ npm install
 ```
 
 ### Usage
+You can either mint from existing ISCN, or mint from data files in `./data/iscn.json`.
 
-Procedure:
-1. Prepare the data files
-2. Run the script
-
+#### Mint From Existing ISCN or NFT Class
 On production chain
 ```bash
 MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT} --iscn-id iscn://xxx
@@ -54,9 +52,32 @@ IS_TESTNET=TRUE MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT} --isc
 | Parameter | Argument | Example | Required |
 | --- | --- | --- | --- |
 | nft-count | An integer.  Total number of NFT to be minted. | --nft-count 100 | YES |
-| iscn-id | A string.  The ISCN ID that the NFT is referring to. Should be provided if `--create-new-iscn` is not set. | --iscn-id iscn://likecoin-chain/IKI9PueuJiOsYvhN6z9jPJIm3UGMh17BQ3tEwEzslQo/3  | NO |
-| create-new-iscn | A boolean.  If true or set, the script will create a new ISCN record based on iscn.json. Cannot be used with `--iscn-id` or `--class-id`. | --create-new-iscn | NO |
+| iscn-id | A string.  The ISCN ID that the NFT is referring to. | --iscn-id iscn://likecoin-chain/IKI9PueuJiOsYvhN6z9jPJIm3UGMh17BQ3tEwEzslQo/3  | YES, unless `--class-id` is provided |
 | class-id | A string.  The NFT class ID that the NFT belongs to. It is used in the case to mint additional NFTs within the same Class (collection).  The script will create one based on nft-class.json if not specified. | --class-id likenft1yhsps5l8tmeuy9y7k0rjpx97cl67cjkjnzkycecw5xrvjjp6c5yqz0ttmc | NO |
+| nft-max-supply | An integer.  Maximum number of NFTs that can be minted in an NFT class.  No limitation if not specified. | --nft-max-supply 1000 | NO |
+
+#### Mint From Data Files
+Procedure:
+1. Prepare the data files
+2. Run the script
+
+On production chain
+```bash
+MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT} --create-new-iscn
+```
+<br>
+
+On testnet
+```bash
+IS_TESTNET=TRUE MNEMONIC="...." node index.js --nft-count ${NUMBER_OF_NFT} --create-new-iscn
+```
+
+<br>
+
+| Parameter | Argument | Example | Required |
+| --- | --- | --- | --- |
+| nft-count | An integer.  Total number of NFT to be minted. | --nft-count 100 | YES |
+| create-new-iscn | A boolean.  If true or set, the script will create a new ISCN record based on iscn.json. Cannot be used with `--iscn-id` or `--class-id`. | --create-new-iscn | YES |
 | nft-max-supply | An integer.  Maximum number of NFTs that can be minted in an NFT class.  No limitation if not specified. | --nft-max-supply 1000 | NO |
 ---
 
