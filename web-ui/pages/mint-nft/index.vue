@@ -43,15 +43,23 @@
     <section v-if="step === 2">
       <h2>2. Create NFT Class</h2>
       <div>
-        <p><label>Max number of supply for this NFT Class (optional):</label></p>
-        <input type="number" />
+        <label>Max number of supply for this NFT Class (optional):</label>
+        <input v-model="classMaxSupply" type="number" />
         <p><label>Upload NFT Class data json file: </label></p>
-        <input type="file" />
+        <input type="file" @change="onClassFileChange"/>
+        <button @click="onClassFileInput">Create</button>
       </div>
     </section>
     <section v-else-if="step > 2">
       <h3>NFT Class Information</h3>
-      <p>NFT Class ID: <a href="">{{ classData?.class?.id }}</a></p>
+      <p>NFT Class ID:
+        <a
+          target="_blank"
+          :href="`${likerLandURL}/nft/class/${encodeURIComponent(classData?.id)}`"
+        >
+          {{ classData?.id }}
+        </a>
+      </p>
       <hr/>
     </section>
     <section v-if="step === 3">
@@ -81,6 +89,8 @@ const iscnCreateData = ref<any>(null)
 const iscnData = ref<any>(null)
 
 const classData = ref<any>(null)
+const classMaxSupply = ref(0)
+const classCreateData = ref<any>(null)
 const nftData = ref<any>(null)
 
 const iscnId = computed(() => iscnData.value?.['@id'])
@@ -149,6 +159,45 @@ function onISCNFileChange(event: Event) {
       const json = JSON.parse(text)
       iscnCreateData.value = json;
       onISCNFileInput();
+    } catch (err) {
+      console.error(err);
+      error.value = err;
+    }
+  }
+  reader.readAsText(file)
+}
+
+async function onClassFileInput() {
+  try {
+    if (!wallet.value || !signer.value) {
+      await connect();
+    }
+    if (!wallet.value || !signer.value) return;
+    const newClassId = await signCreateNFTClass(classCreateData.value, iscnId.value, signer.value, wallet.value);
+    await signCreateRoyltyConfig(newClassId, iscnData.value, iscnOwner.value, false, signer.value, wallet.value);
+    const { data } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(newClassId)}`)
+    if (!data) throw new Error ('INVALID_NFT_CLASS_ID')
+    classData.value = (data.value as any).class
+    step.value = 3
+  } catch (err) {
+    console.error(err);
+    error.value = err;
+  }
+}
+
+function onClassFileChange(event: Event) {
+  if (!event?.target) return;
+  const files = (event.target as HTMLInputElement)?.files
+  if (!files) return;
+  const [file] = files;
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      const text = e.target?.result
+      if (typeof text !== 'string') return;
+      const json = JSON.parse(text)
+      classCreateData.value = json;
+      onClassFileInput();
     } catch (err) {
       console.error(err);
       error.value = err;
