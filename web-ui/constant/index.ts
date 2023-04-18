@@ -1,4 +1,4 @@
-export const IS_TESTNET = true
+export const IS_TESTNET = false
 
 export const CHAIN_ID = IS_TESTNET
   ? 'likecoin-public-testnet-5'
