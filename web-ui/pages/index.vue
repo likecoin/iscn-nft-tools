@@ -1,3 +1,5 @@
 <template>
-  <NuxtLink :to="{ name: 'mint-nft' }">Mint NFT</NuxtLink>
+  <NuxtLink :to="{ name: 'mint-nft' }">
+    Mint NFT
+  </NuxtLink>
 </template>
