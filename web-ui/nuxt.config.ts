@@ -3,5 +3,6 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/eslint-module'
-  ]
+  ],
+  plugins: ['~/plugins/buffer.ts'],
 })

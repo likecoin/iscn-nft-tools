@@ -3,6 +3,7 @@ import { ISCNSigningClient, ISCNRecordData } from "@likecoin/iscn-js";
 import { parseAndCalculateStakeholderRewards } from "@likecoin/iscn-js/dist/iscn/parsing";
 import { DeliverTxResponse } from "@cosmjs/stargate";
 import { RPC_URL, LIKER_NFT_FEE_WALLET } from "~/constant";
+import { addParamToUrl } from '.';
 
 export const royaltyRateBasisPoints = 1000; // 10% as in current chain config
 export const royaltyFeeAmount = 25000; // 2.5%
@@ -10,18 +11,6 @@ export const royaltyUserAmount = 1000000 - royaltyFeeAmount; // 1000000 - fee
 
 let iscnSigningClientPromise: Promise<ISCNSigningClient> | null = null;
 let iscnSigningClient: ISCNSigningClient | null = null;
-
-function addParamToUrl(url: string, params: { [key: string]: string }) {
-  const urlObject = new URL(url);
-  const urlParams = new URLSearchParams(urlObject.search);
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined) {
-      urlParams.set(key, value);
-    }
-  });
-  urlObject.search = urlParams.toString();
-  return urlObject.toString();
-}
 
 export async function getSigningClient(): Promise<ISCNSigningClient> {
   if (!iscnSigningClient) {
@@ -150,4 +139,22 @@ export async function signCreateRoyltyConfig(
     // eslint-disable-next-line no-console
     console.error(err);
   }
+}
+
+export async function signMintNFT(
+  nfts: any[],
+  classId: string,
+  signer: OfflineSigner,
+  address: string,
+  memo?: string
+) {
+  const signingClient = await getSigningClient();
+  await signingClient.connectWithSigner(RPC_URL, signer)
+  const res = await signingClient.mintNFTs(
+    address,
+    classId,
+    nfts,
+    { memo },
+  );
+  return res;
 }
