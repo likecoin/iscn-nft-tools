@@ -18,6 +18,7 @@
       <div>
         <p><label>Upload ISCN data json file: </label></p>
         <input type="file" @change="onISCNFileChange" />
+        <button @click="onISCNFileInput">Create</button>
       </div>
     </section>
     <section v-else-if="step > 1">
@@ -61,13 +62,24 @@
 </template>
 
 <script setup lang="ts">
-import { LCD_URL } from '~/constant';
+import { storeToRefs } from 'pinia';
+import { useWalletStore } from '~/stores/wallet';
+import { LCD_URL, APP_LIKE_CO_URL, LIKER_LAND_URL } from '~/constant';
 
+const store = useWalletStore();
+const { wallet, signer } = storeToRefs(store);
+const { connect } = store;
+
+const appLikeCoURL = APP_LIKE_CO_URL;
+const likerLandURL = LIKER_LAND_URL;
 const step = ref(1);
 const error = ref('')
+
 const iscnIdInput = ref('')
 const iscnOwner = ref('')
+const iscnCreateData = ref<any>(null)
 const iscnData = ref<any>(null)
+
 const classData = ref<any>(null)
 const nftData = ref<any>(null)
 
@@ -101,21 +113,46 @@ async function onISCNIDInput() {
     }
   } catch (err) {
     console.error(err);
-    error.value = JSON.stringify(err);
+    error.value = err;
   }
 }
 
-function onISCNFileChange(event: Event): void {
+async function onISCNFileInput() {
+  try {
+    if (!wallet.value || !signer.value) {
+      await connect();
+    }
+    if (!wallet.value || !signer.value) return;
+    const newIscnId = await signCreateISCNRecord(iscnCreateData.value, signer.value, wallet.value);
+    const { data } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(newIscnId)}`)
+    if (!data) throw new Error ('INVALID_ISCN_ID')
+    const { records, owner } = data.value as any;
+    iscnData.value = records[0].data
+    iscnOwner.value = owner
+    step.value = 2
+  } catch (err) {
+    console.error(err);
+    error.value = err;
+  }
+}
+
+function onISCNFileChange(event: Event) {
   if (!event?.target) return;
   const files = (event.target as HTMLInputElement)?.files
   if (!files) return;
   const [file] = files;
   const reader = new FileReader()
   reader.onload = (e) => {
-    const text = e.target?.result
-    if (typeof text !== 'string') return;
-    const json = JSON.parse(text)
-    console.log(json)
+    try {
+      const text = e.target?.result
+      if (typeof text !== 'string') return;
+      const json = JSON.parse(text)
+      iscnCreateData.value = json;
+      onISCNFileInput();
+    } catch (err) {
+      console.error(err);
+      error.value = err;
+    }
   }
   reader.readAsText(file)
 }
