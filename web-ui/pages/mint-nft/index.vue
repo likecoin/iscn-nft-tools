@@ -2,6 +2,7 @@
   <div>
     <h1>Mint LikeCoin NFT/NFT Book</h1>
     <div v-if="error" style="color: red">{{ error }}</div>
+    <div v-if="isLoading" style="color: green">Loading...</div>
     <div>Steps {{ step }} / 4</div>
     <hr/>
     <section v-if="step === 1">
@@ -9,17 +10,17 @@
       <div>
         <p><label>Enter ISCN ID or NFT Class ID:</label></p>
         <input v-model="iscnIdInput" placeholder="iscn://... or likenft....">
-        <button @click="onISCNIDInput">Submit</button>
+        <button :disabled="isLoading" @click="onISCNIDInput">Submit</button>
       </div>
       <br/>
       <br/>
         or
       <br/>
       <div>
-        <p><label>Upload ISCN data json file: </label></p>
+        <p><label>Upload ISCN data json (iscn.json) file: </label></p>
         <input type="file" @change="onISCNFileChange" />
         <br/>
-        <button @click="onISCNFileInput">Create</button>
+        <button :disabled="isLoading" @click="onISCNFileInput">Create</button>
       </div>
     </section>
     <section v-else-if="step > 1">
@@ -46,10 +47,10 @@
       <div>
         <label>Max number of supply for this NFT Class (optional):</label>
         <input v-model="classMaxSupply" type="number" />
-        <p><label>Upload NFT Class data json file: </label></p>
+        <p><label>Upload NFT Class data json (nft_class.json) file: </label></p>
         <input type="file" @change="onClassFileChange"/>
         <br/>
-        <button @click="onClassFileInput">Create</button>
+        <button :disabled="isLoading" @click="onClassFileInput">Create</button>
       </div>
     </section>
     <section v-else-if="step > 2">
@@ -69,19 +70,19 @@
       <div>
         <label>Number of NFT to mint:</label>
         <input v-model="nftMintCount" type="number" />
-        <p><label>Upload NFT default data json file: </label></p>
+        <p><label>Upload NFT default data json (nfts_default.json) file: </label></p>
         <input type="file" @change="onMintNFTDefaultFileChange"/>
-        <p><label>Upload NFT CSV file: </label></p>
+        <p><label>Upload NFT CSV (nfts.csv) file: </label></p>
         <input type="file" @change="onMintNFTFileChange"/>
         <br/>
-        <button @click="onMintNFTStart">Create</button>
+        <button :disabled="isLoading" @click="onMintNFTStart">Create</button>
       </div>
     </section>
 
     <section v-if="step > 3">
       Success!
-      <button @click.native="onDownloadCSV">
-        Download your NFT csv again
+      <button :disabled="isLoading" @click="onDownloadCSV">
+        Download NFT result csv
       </button>
       <p>
         <a
@@ -112,6 +113,7 @@ const appLikeCoURL = APP_LIKE_CO_URL;
 const likerLandURL = LIKER_LAND_URL;
 const step = ref(1);
 const error = ref('')
+const isLoading = ref(false)
 
 const iscnIdInput = ref('')
 const iscnOwner = ref('')
@@ -135,8 +137,13 @@ onMounted(async () => {
 
 })
 
+watch(isLoading, (newIsLoading) => {
+  if (newIsLoading) error.value = ''
+})
+
 async function onISCNIDInput() {
   try {
+    isLoading.value = true
     if (iscnIdInput.value.startsWith('iscn://')) {
       const { data } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(iscnIdInput.value)}`)
       if (!data?.value) throw new Error ('INVALID_ISCN_ID')
@@ -160,11 +167,14 @@ async function onISCNIDInput() {
   } catch (err) {
     console.error(err);
     error.value = err;
+  } finally {
+    isLoading.value = false
   }
 }
 
 async function onISCNFileInput() {
   try {
+    isLoading.value = true
     if (!wallet.value || !signer.value) {
       await connect();
     }
@@ -180,6 +190,8 @@ async function onISCNFileInput() {
   } catch (err) {
     console.error(err);
     error.value = err;
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -207,6 +219,7 @@ function onISCNFileChange(event: Event) {
 
 async function onClassFileInput() {
   try {
+    isLoading.value = true
     if (!wallet.value || !signer.value) {
       await connect();
     }
@@ -221,6 +234,8 @@ async function onClassFileInput() {
   } catch (err) {
     console.error(err);
     error.value = err;
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -248,6 +263,7 @@ function onClassFileChange(event: Event) {
 
 async function onMintNFTStart() {
   try {
+    isLoading.value = true
     if (!wallet.value || !signer.value) {
       await connect();
     }
@@ -289,6 +305,8 @@ async function onMintNFTStart() {
   } catch (err) {
     console.error(err);
     error.value = err;
+  } finally {
+    isLoading.value = false
   }
 }
 
