@@ -154,7 +154,7 @@ const iscnCreateData = ref<any>(null)
 const iscnData = ref<any>(null)
 
 const classData = ref<any>(null)
-const classMaxSupply = ref(0)
+const classMaxSupply = ref<number | undefined>(undefined)
 const classCreateData = ref<any>(null)
 
 const nftMintListData = ref<any>([])
@@ -265,7 +265,7 @@ async function onClassFileInput () {
     }
     if (!wallet.value || !signer.value) { return }
     if (!classCreateData.value) { throw new Error('NO_CLASS_DATA') }
-    const newClassId = await signCreateNFTClass(classCreateData.value, iscnId.value, signer.value, wallet.value)
+    const newClassId = await signCreateNFTClass(classCreateData.value, iscnId.value, signer.value, wallet.value, { nftMaxSupply: classMaxSupply.value })
     await signCreateRoyltyConfig(newClassId, iscnData.value, iscnOwner.value, false, signer.value, wallet.value)
     const { data } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(newClassId)}`)
     if (!data?.value) { throw new Error('INVALID_NFT_CLASS_ID') }
