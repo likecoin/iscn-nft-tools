@@ -26,7 +26,7 @@
         <p><label>Upload ISCN data json (iscn.json) file: </label></p>
         <input type="file" @change="onISCNFileChange">
         <br>
-        <button :disabled="isLoading" @click="onISCNFileInput">
+        <button :disabled="isLoading" style="margin-top: 16px" @click="onISCNFileInput">
           Create
         </button>
       </div>
@@ -88,7 +88,7 @@
         <p><label>Upload NFT CSV (nfts.csv) file: </label></p>
         <input type="file" @change="onMintNFTFileChange">
         <br>
-        <button :disabled="isLoading" @click="onMintNFTStart">
+        <button :disabled="isLoading" style="margin-top: 16px" @click="onMintNFTStart">
           Create
         </button>
       </div>

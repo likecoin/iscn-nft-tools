@@ -16,11 +16,6 @@
 body {
     margin: 0;
 }
-
-h1 {
-    display: inline-block;
-}
-
 table,
 td,
 th {
@@ -28,10 +23,4 @@ th {
     border: 1px solid;
 }
 
-footer {
-    padding: 12px 12px 20px;
-
-    display: flex;
-    gap: 10px;
-}
 </style>
