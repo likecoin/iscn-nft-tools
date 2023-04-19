@@ -1,0 +1,1 @@
+import{_ as e}from"./nuxt-link.c213810d.js";import{a as n,c as o,w as c,o as _,b as a}from"./entry.5e30ee07.js";const r={};function s(f,i){const t=e;return _(),o(t,{to:{name:"mint-nft"}},{default:c(()=>[a(" Mint NFT ")]),_:1})}const p=n(r,[["render",s]]);export{p as default};
