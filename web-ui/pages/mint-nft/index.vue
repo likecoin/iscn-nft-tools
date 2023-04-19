@@ -135,6 +135,9 @@ import { stringify } from 'csv-stringify/sync'
 import { useWalletStore } from '~/stores/wallet'
 import { LCD_URL, APP_LIKE_CO_URL, LIKER_LAND_URL } from '~/constant'
 
+const router = useRouter()
+const route = useRoute()
+
 const store = useWalletStore()
 const { wallet, signer } = storeToRefs(store)
 const { connect } = store
@@ -145,7 +148,7 @@ const step = ref(1)
 const error = ref('')
 const isLoading = ref(false)
 
-const iscnIdInput = ref('')
+const iscnIdInput = ref(route.query.class_id || route.query.iscn_id || '')
 const iscnOwner = ref('')
 const iscnCreateData = ref<any>(null)
 const iscnData = ref<any>(null)
@@ -163,8 +166,16 @@ const nftCSVData = ref('')
 const iscnId = computed(() => iscnData.value?.['@id'])
 const classId = computed(() => classData.value?.id)
 
-onMounted(async () => {
+watch(iscnId, (newIscnId) => {
+  if (newIscnId) {
+    router.replace({ query: { ...route.query, iscn_id: newIscnId } })
+  }
+})
 
+watch(classId, (newClassId) => {
+  if (newClassId) {
+    router.replace({ query: { ...route.query, class_id: newClassId } })
+  }
 })
 
 watch(isLoading, (newIsLoading) => {
