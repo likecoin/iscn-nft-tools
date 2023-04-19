@@ -11,7 +11,7 @@
     <hr>
     <section v-if="step === 1">
       <h2>1. Select or Create ISCN</h2>
-      <div>
+      <div v-if="!iscnCreateData">
         <p><label>Enter ISCN ID or NFT Class ID:</label></p>
         <input v-model="iscnIdInput" placeholder="iscn://... or likenft....">
         <button :disabled="isLoading" @click="onISCNIDInput">
@@ -24,6 +24,10 @@
       <br>
       <div>
         <p><label>Upload ISCN data json (iscn.json) file: </label></p>
+        <div v-if="iscnCreateData">
+          <!-- eslint-disable-next-line vue/no-textarea-mustache -->
+          <textarea cols="100" rows="10" readonly>{{ JSON.stringify(iscnCreateData, null, 2) }}</textarea>
+        </div>
         <input type="file" @change="onISCNFileChange">
         <br>
         <button :disabled="isLoading" style="margin-top: 16px" @click="onISCNFileInput">
@@ -58,6 +62,10 @@
         <label>Max number of supply for this NFT Class (optional):</label>
         <input v-model="classMaxSupply" type="number">
         <p><label>Upload NFT Class data json (nft_class.json) file: </label></p>
+        <div v-if="classCreateData">
+          <!-- eslint-disable-next-line vue/no-textarea-mustache -->
+          <textarea cols="100" rows="10" readonly>{{ JSON.stringify(classCreateData, null, 2) }}</textarea>
+        </div>
         <input type="file" @change="onClassFileChange">
         <br>
         <button :disabled="isLoading" @click="onClassFileInput">
@@ -84,8 +92,15 @@
         <label>Number of NFT to mint:</label>
         <input v-model="nftMintCount" type="number">
         <p><label>Upload NFT default data json (nfts_default.json) file: </label></p>
+        <div v-if="nftMintDefaultData">
+          <!-- eslint-disable-next-line vue/no-textarea-mustache -->
+          <textarea cols="100" rows="10" readonly>{{ JSON.stringify(nftMintDefaultData, null, 2) }}</textarea>
+        </div>
         <input type="file" @change="onMintNFTDefaultFileChange">
         <p><label>Upload NFT CSV (nfts.csv) file: </label></p>
+        <div v-if="nftMintListData?.length">
+          <pre>Number of NFT data in CSV:{{ nftMintListData?.length }}</pre>
+        </div>
         <input type="file" @change="onMintNFTFileChange">
         <br>
         <button :disabled="isLoading" style="margin-top: 16px" @click="onMintNFTStart">
@@ -223,7 +238,6 @@ function onISCNFileChange (event: Event) {
       const json = JSON.parse(text)
       if (!json || !json.contentMetadata) { throw new Error('Invalid ISCN data json') }
       iscnCreateData.value = json
-      onISCNFileInput()
     } catch (err) {
       console.error(err)
       error.value = (err as Error).toString()
@@ -267,7 +281,6 @@ function onClassFileChange (event: Event) {
       const json = JSON.parse(text)
       if (!json || !json.name) { throw new Error('Invalid Class data json') }
       classCreateData.value = json
-      onClassFileInput()
     } catch (err) {
       console.error(err)
       error.value = (err as Error).toString()
@@ -367,11 +380,8 @@ function onMintNFTFileChange (event: Event) {
       const text = e.target?.result
       if (typeof text !== 'string') { return }
       const data = parse(text, { columns: true })
-      if (data.length && data.length !== nftMintCount.value) { throw new Error('NFT data length and nft count not match') }
       nftMintListData.value = data
-      if (nftMintDefaultData.value && nftMintListData.value) {
-        onMintNFTStart()
-      }
+      if (data.length && data.length !== nftMintCount.value) { throw new Error('NFT data length and nft count not match') }
     } catch (err) {
       console.error(err)
       error.value = (err as Error).toString()
