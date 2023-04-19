@@ -165,10 +165,20 @@ async function mintNFTsFromJSON(classId, nftCount, signingClient, account) {
       uri: dataUri,
       image: dataImage,
       metadata: dataMetadataString,
+      ...otherData
     } = listData[i];
     const dataMetadata = JSON.parse(dataMetadataString || '{}');
     const data = { ...defaultMetadata, ...dataMetadata };
     if (dataImage) data.image = dataImage;
+    Object.entries(otherData).forEach(([key, value]) => {
+      if (value) {
+        try {
+          data[key] = JSON.parse(value);
+        } catch (err) {
+          data[key] = value;
+        }
+      }
+    });
     const id = nftId || `nft-${uuidv4()}`;
     let uri = dataUri || defaultURI || '';
     const isUriHttp = uri && uri.startsWith('https://');
