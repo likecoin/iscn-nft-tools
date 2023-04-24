@@ -14,6 +14,8 @@
 [keplr link]: https://www.keplr.app/download
 [docs link]: https://docs.like.co
 
+Web UI for this repository: https://likecoin.github.io/iscn-nft-tools/
+
 </div>
 
 It is the toolbox for operating NFT and ISCN on LikeCoin chain.  The toolbox aims to complement the limitation of UI such as [Liker Land][Liker Land link].
@@ -45,6 +47,7 @@ You must have a LikeCoin wallet address that support Cosmos ecosystem in order t
 
 | Script | Description |
 | --- | --- |
+| [web-ui](web-ui) | User friendly [web application](https://likecoin.github.io/iscn-nft-tools/) that implements some of the scripts in this repository
 | [mint-nft](mint-nft) | Mint NFTs on LikeCoin chain based on metadata in JSON files or existing ISCN ID.  It is useful when minting in batch. |
 | [send-nft](send-nft) | Send NFTs in batch |
 | [send-like](send-like) | Send LIKE in batch |
