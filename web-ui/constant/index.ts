@@ -1,4 +1,4 @@
-export const IS_TESTNET = false
+export const IS_TESTNET = true
 
 export const DENOM = IS_TESTNET ? 'nanoekil' : 'nanolike'
 
