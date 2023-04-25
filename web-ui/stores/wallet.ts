@@ -16,7 +16,7 @@ export const useWalletStore = defineStore('wallet', () => {
   const signer = ref(null as (OfflineAminoSigner & OfflineDirectSigner) | null)
 
   const wallet = computed(() => accounts.value[0]?.address)
-  const isConnected = computed(() => !!wallet)
+  const isConnected = computed(() => !!wallet.value)
 
   async function connect () {
     if (!window.keplr) { return }

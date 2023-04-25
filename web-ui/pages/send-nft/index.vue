@@ -7,11 +7,13 @@
     <div v-if="isLoading" style="color: green">
       Loading...
     </div>
-    <div>Steps {{ step }} / 1</div>
+    <div>Steps {{ step }} / 2</div>
     <hr>
     <section v-if="step === 1">
       <h2>1. Send NFT</h2>
       <div>
+        <p><label>Enter default memo (optional)</label></p>
+        <input v-model="defaultMemo" placeholder="default memo">
         <p><label>Upload NFT CSV (list.csv) file: </label></p>
         <div v-if="nftSendListData?.length">
           <pre>Number of NFT data in CSV:{{ nftSendListData?.length }}</pre>
@@ -60,7 +62,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { parse } from 'csv-parse/sync'
-// import { stringify } from 'csv-stringify/sync'
+import { formatMsgSend } from '@likecoin/iscn-js/dist/messages/likenft'
+import { TimeoutError } from '@cosmjs/stargate'
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
+import { stringify } from 'csv-stringify/sync'
 
 import { getNFTs } from '~/utils/cosmos'
 import { useWalletStore } from '~/stores/wallet'
@@ -73,6 +78,7 @@ const step = ref(1)
 const error = ref('')
 const isLoading = ref(false)
 
+const defaultMemo = ref('')
 const nftSendListData = ref<any>([])
 const nftResultData = ref<any>([])
 
@@ -109,6 +115,70 @@ async function onSendNFTStart () {
         throw new Error(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`)
       }
     }
+
+    const signingClient = await getSigningClientWithSigner(signer.value)
+    const client = signingClient.getSigningStargateClient()
+    if (!client) { throw new Error('Signing client not exists') }
+
+    const hasCsvMemo = nftSendListData.value.some((e: any) => e.memo)
+
+    const { accountNumber, sequence } = await client.getSequence(wallet.value)
+    const chainId = await client.getChainId()
+
+    step.value += 1
+    const msgAnyArray = []
+    let currentSequence = sequence
+    for (let i = 0; i < nftSendListData.value.length; i += 1) {
+      const e = nftSendListData.value[i]
+      const removed = nftsDataObject[e.classId].splice(0, 1)
+      const msgSend = formatMsgSend(
+        wallet.value,
+        e.address,
+        e.classId,
+        removed[0].id
+      )
+      if (hasCsvMemo) {
+        const tx = await client.sign(
+          wallet.value,
+          [msgSend],
+          getGasFee(1),
+          e.memo || defaultMemo.value,
+          {
+            accountNumber,
+            sequence: currentSequence,
+            chainId
+          }
+        )
+        nftResultData.value[i].status = 'signed'
+        currentSequence += 1
+        try {
+          const txBytes = TxRaw.encode(tx).finish()
+          const res = await client.broadcastTx(txBytes, 1000, 1000)
+          nftResultData.value[i].status = `broadcasted ${res.transactionHash}`
+        } catch (err) {
+          if (err instanceof TimeoutError) {
+            nftResultData.value[i].status = `broadcasted ${err.txId}`
+          } else {
+            nftResultData.value[i].status = `error ${(err as Error).toString()}`
+            throw err
+          }
+        }
+      } else {
+        msgAnyArray.push(msgSend)
+      }
+    }
+
+    if (msgAnyArray.length) {
+      const result = await client.signAndBroadcast(
+        wallet.value,
+        msgAnyArray,
+        getGasFee(nftSendListData.value.length),
+        defaultMemo.value
+      )
+      for (let i = 0; i < nftSendListData.value.length; i += 1) {
+        nftResultData.value[i].status = `broadcasted ${result.transactionHash}`
+      }
+    }
   } catch (err) {
     console.error(err)
     error.value = (err as Error).toString()
@@ -139,7 +209,7 @@ function onSendNFTFileChange (event: Event) {
 }
 
 function onDownloadCSV () {
-  downloadBlob(nftResultData.value, 'result.csv', 'text/csv;charset=utf-8;')
+  downloadBlob(stringify(nftResultData.value), 'result.csv', 'text/csv;charset=utf-8;')
 }
 
 </script>

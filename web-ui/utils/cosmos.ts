@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js'
 import { OfflineSigner } from '@cosmjs/proto-signing'
 import { ISCNSigningClient, ISCNRecordData } from '@likecoin/iscn-js'
 import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing'
@@ -5,6 +6,7 @@ import { DeliverTxResponse } from '@cosmjs/stargate'
 import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination'
 import { addParamToUrl } from '.'
 import { RPC_URL, LIKER_NFT_FEE_WALLET } from '~/constant'
+import network from '~/constant/network'
 
 export const royaltyRateBasisPoints = 1000 // 10% as in current chain config
 export const royaltyFeeAmount = 25000 // 2.5%
@@ -19,6 +21,30 @@ export async function getSigningClient (): Promise<ISCNSigningClient> {
     iscnSigningClient = c
   }
   return iscnSigningClient
+}
+
+export async function getSigningClientWithSigner (signer: OfflineSigner): Promise<ISCNSigningClient> {
+  const signingClient = await getSigningClient()
+  await signingClient.connectWithSigner(RPC_URL, signer)
+  return signingClient
+}
+
+export function getGasFee (count: number) {
+  return {
+    amount: [
+      {
+        denom: network.feeCurrencies[0].coinMinimalDenom,
+        amount: `${new BigNumber(count)
+          .shiftedBy(network.feeCurrencies[0].coinDecimals)
+          .shiftedBy(-4) // *10000
+          .toFixed(0)}`
+      }
+    ],
+    gas: `${new BigNumber(count)
+      .shiftedBy(network.feeCurrencies[0].coinDecimals)
+      .shiftedBy(-3) // * 1000
+      .toFixed(0)}`
+  }
 }
 
 export async function queryISCNById (iscnId: string) {
