@@ -88,6 +88,15 @@ const nftCountObject = computed(() => {
     return object
   }, {})
 })
+const nftIdObject = computed(() => {
+  return nftSendListData.value.reduce((object: any, item: any) => {
+    if (item.nftId) {
+      object[item.classId] = object[item.classId] || []
+      object[item.classId].push(item.nftId)
+    }
+    return object
+  }, {})
+})
 
 watch(isLoading, (newIsLoading) => {
   if (newIsLoading) { error.value = '' }
@@ -114,6 +123,15 @@ async function onSendNFTStart () {
       if (needCount > nftsDataObject[classId].length) {
         throw new Error(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`)
       }
+      if (nftIdObject.value[classId]) {
+        const hasMissinNftId = nftIdObject.value[classId]
+          .find((nftId: string) => !nfts.map(nft => nft.id).includes(nftId))
+        if (hasMissinNftId) {
+          throw new Error(`NFT classId: ${classId} nftId:${hasMissinNftId} is not owned by sender!`)
+        }
+        nftsDataObject[classId] = nftsDataObject[classId]
+          .filter((nft: any) => !nftIdObject.value[classId].includes(nft.id))
+      }
     }
 
     const signingClient = await getSigningClientWithSigner(signer.value)
@@ -130,12 +148,16 @@ async function onSendNFTStart () {
     let currentSequence = sequence
     for (let i = 0; i < nftSendListData.value.length; i += 1) {
       const e = nftSendListData.value[i]
-      const removed = nftsDataObject[e.classId].splice(0, 1)
+      let targetNftId = e.nftId
+      if (!targetNftId) {
+        const removed = nftsDataObject[e.classId].splice(0, 1)
+        targetNftId = removed[0].id
+      }
       const msgSend = formatMsgSend(
         wallet.value,
         e.address,
         e.classId,
-        removed[0].id
+        targetNftId
       )
       if (hasCsvMemo) {
         const tx = await client.sign(

@@ -85,6 +85,14 @@ async function run() {
       object[item.classId] = (object[item.classId] || 0) + 1;
       return object;
     }, {});
+    const nftIdObject = data.reduce((object, item) => {
+      if (item.nftId) {
+        // eslint-disable-next-line no-param-reassign
+        object[item.classId] = object[item.classId] || [];
+        object[item.classId].push(item.nftId);
+      }
+      return object;
+    }, {});
 
     let hasError = false;
     for (let i = 0; i < Object.keys(nftCountObject).length; i += 1) {
@@ -100,7 +108,19 @@ async function run() {
         hasError = true;
         // eslint-disable-next-line no-console
         console.log(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`);
-      } else {
+      }
+      if (nftIdObject[classId]) {
+        const hasMissinNftId = nftIdObject[classId]
+          .find((nftId) => !nfts.map((nft) => nft.id).includes(nftId));
+        if (hasMissinNftId) {
+          hasError = true;
+          // eslint-disable-next-line no-console
+          console.log(`NFT classId: ${classId} nftId:${hasMissinNftId} is not owned by sender!`);
+        }
+        nftsDataObject[classId] = nftsDataObject[classId]
+          .filter((nft) => !nftIdObject[classId].includes(nft.id));
+      }
+      if (!hasError) {
         // eslint-disable-next-line no-console
         console.log(`NFT classId: ${classId}, Will send ${needCount} counts, data ok!`);
       }
@@ -126,12 +146,16 @@ async function run() {
     let currentSequence = sequence;
     for (let i = 0; i < data.length; i += 1) {
       const e = data[i];
-      const removed = nftsDataObject[e.classId].splice(0, 1);
+      let targetNftId = e.nftId;
+      if (!targetNftId) {
+        const removed = nftsDataObject[e.classId].splice(0, 1);
+        targetNftId = removed[0].id;
+      }
       const msgSend = formatMsgSend(
         firstAccount.address,
         e.address,
         e.classId,
-        removed[0].id,
+        targetNftId,
       );
       if (hasCsvMemo) {
         const tx = await client.sign(
