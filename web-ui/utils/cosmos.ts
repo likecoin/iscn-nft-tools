@@ -2,6 +2,7 @@ import { OfflineSigner } from '@cosmjs/proto-signing'
 import { ISCNSigningClient, ISCNRecordData } from '@likecoin/iscn-js'
 import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing'
 import { DeliverTxResponse } from '@cosmjs/stargate'
+import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination'
 import { addParamToUrl } from '.'
 import { RPC_URL, LIKER_NFT_FEE_WALLET } from '~/constant'
 
@@ -28,6 +29,27 @@ export async function queryISCNById (iscnId: string) {
     owner: res.owner,
     data: res.records[0].data
   }
+}
+
+export async function getNFTs ({ classId = '', owner = '', needCount }) {
+  const needPages = Math.ceil(needCount / 100)
+  const c = (await getSigningClient()).getISCNQueryClient()
+  const client = await c.getQueryClient()
+  const nfts = []
+  let next: Uint8Array | undefined = new Uint8Array([0x00])
+  let pageCounts = 0
+  do {
+    const res = await client.nft.NFTs(
+      classId,
+      owner,
+      PageRequest.fromPartial({ key: next })
+    );
+    (next = res.pagination?.nextKey)
+    nfts.push(...res.nfts)
+    if (pageCounts > needPages) { break }
+    pageCounts += 1
+  } while (next && next.length)
+  return { nfts }
 }
 
 export async function signCreateISCNRecord (
