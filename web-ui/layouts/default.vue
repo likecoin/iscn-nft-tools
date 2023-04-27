@@ -2,7 +2,9 @@
   <div>
     <header>
       <div style="display: flex; flex-wrap:wrap; background-color:#28646e; color: white; padding: 20px;">
-        <h1>LikeCoin ISCN/NFT Tools</h1>
+        <NuxtLink style="color: white; text-decoration: none;" :to="{ name: 'index' }">
+          <h1>LikeCoin ISCN/NFT Tools</h1>
+        </NuxtLink>
         <div style="flex: 1" />
         <WalletHeader />
       </div>
