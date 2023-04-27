@@ -57,6 +57,16 @@ export async function queryISCNById (iscnId: string) {
   }
 }
 
+export async function getNFTOwner (classId: string, nftId: string) {
+  const c = (await getSigningClient()).getISCNQueryClient()
+  const client = await c.getQueryClient()
+  const res = await client.nft.owner(
+    classId,
+    nftId
+  )
+  return { owner: res.owner }
+}
+
 export async function getNFTs ({ classId = '', owner = '', needCount }) {
   const needPages = Math.ceil(needCount / 100)
   const c = (await getSigningClient()).getISCNQueryClient()

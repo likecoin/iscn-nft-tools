@@ -61,6 +61,16 @@ async function getNFTs({ classId = '', owner = '', needCount }) {
   return { nfts };
 }
 
+async function getNFTOwner(classId, nftId) {
+  const c = await getNFTQueryClient();
+  const client = await c.getQueryClient();
+  const res = await client.nft.owner(
+    classId,
+    nftId,
+  );
+  return { owner: res.owner };
+}
+
 function getGasFee(count) {
   return {
     amount: [
@@ -110,12 +120,12 @@ async function run() {
         console.log(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`);
       }
       if (nftIdObject[classId]) {
-        const hasMissinNftId = nftIdObject[classId]
-          .find((nftId) => !nfts.map((nft) => nft.id).includes(nftId));
-        if (hasMissinNftId) {
-          hasError = true;
-          // eslint-disable-next-line no-console
-          console.log(`NFT classId: ${classId} nftId:${hasMissinNftId} is not owned by sender!`);
+        for (let j = 0; j < nftIdObject[classId].length; j += 1) {
+          const { nftId } = nftIdObject[classId][j];
+          const { owner } = await getNFTOwner(classId, nftId);
+          if (owner !== firstAccount.address) {
+            throw new Error(`NFT classId: ${classId} nftId:${nftId} is not owned by sender!`);
+          }
         }
         nftsDataObject[classId] = nftsDataObject[classId]
           .filter((nft) => !nftIdObject[classId].includes(nft.id));
