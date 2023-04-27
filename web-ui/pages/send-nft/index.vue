@@ -155,6 +155,7 @@ async function onSendNFTStart () {
         const removed = nftsDataObject[e.classId].splice(0, 1)
         targetNftId = removed[0].id
       }
+      nftResultData.value[i].nftId = targetNftId
       const msgSend = formatMsgSend(
         wallet.value,
         e.address,
