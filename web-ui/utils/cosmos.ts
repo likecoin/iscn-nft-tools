@@ -1,9 +1,12 @@
+import BigNumber from 'bignumber.js'
 import { OfflineSigner } from '@cosmjs/proto-signing'
 import { ISCNSigningClient, ISCNRecordData } from '@likecoin/iscn-js'
 import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing'
 import { DeliverTxResponse } from '@cosmjs/stargate'
+import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination'
 import { addParamToUrl } from '.'
 import { RPC_URL, LIKER_NFT_FEE_WALLET } from '~/constant'
+import network from '~/constant/network'
 
 export const royaltyRateBasisPoints = 1000 // 10% as in current chain config
 export const royaltyFeeAmount = 25000 // 2.5%
@@ -20,6 +23,30 @@ export async function getSigningClient (): Promise<ISCNSigningClient> {
   return iscnSigningClient
 }
 
+export async function getSigningClientWithSigner (signer: OfflineSigner): Promise<ISCNSigningClient> {
+  const signingClient = await getSigningClient()
+  await signingClient.connectWithSigner(RPC_URL, signer)
+  return signingClient
+}
+
+export function getGasFee (count: number) {
+  return {
+    amount: [
+      {
+        denom: network.feeCurrencies[0].coinMinimalDenom,
+        amount: `${new BigNumber(count)
+          .shiftedBy(network.feeCurrencies[0].coinDecimals)
+          .shiftedBy(-4) // *10000
+          .toFixed(0)}`
+      }
+    ],
+    gas: `${new BigNumber(count)
+      .shiftedBy(network.feeCurrencies[0].coinDecimals)
+      .shiftedBy(-3) // * 1000
+      .toFixed(0)}`
+  }
+}
+
 export async function queryISCNById (iscnId: string) {
   const c = (await getSigningClient()).getISCNQueryClient()
   const res = await c.queryRecordsById(iscnId)
@@ -28,6 +55,27 @@ export async function queryISCNById (iscnId: string) {
     owner: res.owner,
     data: res.records[0].data
   }
+}
+
+export async function getNFTs ({ classId = '', owner = '', needCount }) {
+  const needPages = Math.ceil(needCount / 100)
+  const c = (await getSigningClient()).getISCNQueryClient()
+  const client = await c.getQueryClient()
+  const nfts = []
+  let next: Uint8Array | undefined = new Uint8Array([0x00])
+  let pageCounts = 0
+  do {
+    const res = await client.nft.NFTs(
+      classId,
+      owner,
+      PageRequest.fromPartial({ key: next })
+    );
+    (next = res.pagination?.nextKey)
+    nfts.push(...res.nfts)
+    if (pageCounts > needPages) { break }
+    pageCounts += 1
+  } while (next && next.length)
+  return { nfts }
 }
 
 export async function signCreateISCNRecord (
