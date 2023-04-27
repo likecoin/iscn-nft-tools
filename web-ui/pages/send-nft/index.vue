@@ -124,10 +124,12 @@ async function onSendNFTStart () {
         throw new Error(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`)
       }
       if (nftIdObject.value[classId]) {
-        const hasMissinNftId = nftIdObject.value[classId]
-          .find((nftId: string) => !nfts.map(nft => nft.id).includes(nftId))
-        if (hasMissinNftId) {
-          throw new Error(`NFT classId: ${classId} nftId:${hasMissinNftId} is not owned by sender!`)
+        for (let j = 0; j < nftIdObject.value[classId].length; j += 1) {
+          const nftId = nftIdObject.value[classId][j]
+          const { owner } = await getNFTOwner(classId, nftId)
+          if (owner !== wallet.value) {
+            throw new Error(`NFT classId: ${classId} nftId:${nftId} is not owned by sender!`)
+          }
         }
         nftsDataObject[classId] = nftsDataObject[classId]
           .filter((nft: any) => !nftIdObject.value[classId].includes(nft.id))
