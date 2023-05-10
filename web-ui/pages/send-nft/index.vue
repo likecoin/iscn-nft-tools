@@ -14,7 +14,15 @@
       <div>
         <p><label>Enter default memo (optional)</label></p>
         <input v-model="defaultMemo" placeholder="default memo">
-        <p><label>Upload NFT CSV (list.csv) file: </label></p>
+        <p>
+          <label>Upload NFT CSV (
+            <a
+              href="https://github.com/likecoin/iscn-nft-tools/blob/master/send-nft/list_example.csv"
+              target="_blank"
+            >
+              list.csv
+            </a>) file: </label>
+        </p>
         <div v-if="nftSendListData?.length">
           <pre>Number of NFT data in CSV:{{ nftSendListData?.length }}</pre>
           Summary

@@ -22,7 +22,14 @@
           :min="minExpirationValue"
         >
 
-        <p><label>Upload NFT CSV (list.csv) file: </label></p>
+        <p>
+          <label>Upload NFT CSV (<a
+            href="https://github.com/likecoin/iscn-nft-tools/blob/master/list-and-sell-nft/list_example.csv"
+            target="_blank"
+          >
+            list.csv
+          </a>) file: </label>
+        </p>
         <div v-if="nftSellListData?.length">
           <pre>Number of NFT data in CSV:{{ nftSellListData?.length }}</pre>
           Summary

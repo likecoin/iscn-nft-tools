@@ -1,6 +1,6 @@
 # Web UI for LikeCoin ISCN and NFT tools
 Mainnet: https://likecoin.github.io/iscn-nft-tools/
-Testnet: https://likecoin-iscn-nft-tools-testnet.netlify.app/mint-nft/
+Testnet: https://likecoin-iscn-nft-tools-testnet.netlify.app/
 
 Web App version for ISCN and NFT scripts
 

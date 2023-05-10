@@ -23,7 +23,16 @@
       or
       <br>
       <div>
-        <p><label>Upload ISCN data json (iscn.json) file: </label></p>
+        <p>
+          <label>Upload ISCN data json (
+            <a
+              href="https://github.com/likecoin/iscn-nft-tools/blob/master/mint-nft/samples/iscn.json"
+              target="_blank"
+            >
+              iscn.json
+            </a>
+            ) file:</label>
+        </p>
         <div v-if="iscnCreateData">
           <!-- eslint-disable-next-line vue/no-textarea-mustache -->
           <textarea cols="100" rows="10" readonly>{{ JSON.stringify(iscnCreateData, null, 2) }}</textarea>
@@ -61,7 +70,16 @@
       <div>
         <label>Max number of supply for this NFT Class (optional):</label>
         <input v-model="classMaxSupply" type="number">
-        <p><label>Upload NFT Class data json (nft_class.json) file: </label></p>
+        <p>
+          <label>Upload NFT Class data json (
+            <a
+              href="https://github.com/likecoin/iscn-nft-tools/blob/master/mint-nft/samples/nft_class.json"
+              target="_blank"
+            >
+              nft_class.json
+            </a>
+            ) file: </label>
+        </p>
         <div v-if="classCreateData">
           <!-- eslint-disable-next-line vue/no-textarea-mustache -->
           <textarea cols="100" rows="10" readonly>{{ JSON.stringify(classCreateData, null, 2) }}</textarea>
@@ -91,13 +109,28 @@
       <div>
         <label>Number of NFT to mint:</label>
         <input v-model="nftMintCount" type="number">
-        <p><label>Upload NFT default data json (nfts_default.json) file: </label></p>
+        <p>
+          <label>Upload NFT default data json (
+            <a
+              href="https://github.com/likecoin/iscn-nft-tools/blob/master/mint-nft/samples/nfts_default.json"
+              target="_blank"
+            >
+              nfts_default.json
+            </a>) file: </label>
+        </p>
         <div v-if="nftMintDefaultData">
           <!-- eslint-disable-next-line vue/no-textarea-mustache -->
           <textarea cols="100" rows="10" readonly>{{ JSON.stringify(nftMintDefaultData, null, 2) }}</textarea>
         </div>
         <input type="file" @change="onMintNFTDefaultFileChange">
-        <p><label>Upload NFT CSV (nfts.csv) file: </label></p>
+        <p>
+          <label>Upload NFT CSV (<a
+            href="https://github.com/likecoin/iscn-nft-tools/blob/master/mint-nft/samples/nfts.csv"
+            target="_blank"
+          >
+            nfts.csv
+          </a>) file: </label>
+        </p>
         <div v-if="nftMintListData?.length">
           <pre>Number of NFT data in CSV:{{ nftMintListData?.length }}</pre>
         </div>
