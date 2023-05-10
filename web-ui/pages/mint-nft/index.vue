@@ -87,7 +87,7 @@
       <hr>
     </section>
     <section v-if="step === 3">
-      <h2>3. Mint ISCN</h2>
+      <h2>3. Mint NFT</h2>
       <div>
         <label>Number of NFT to mint:</label>
         <input v-model="nftMintCount" type="number">
