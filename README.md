@@ -18,7 +18,7 @@ Web UI for this repository: https://likecoin.github.io/iscn-nft-tools/
 
 </div>
 
-It is the toolbox for operating NFT and ISCN on LikeCoin chain.  The toolbox aims to complement the limitation of UI such as [Liker Land][Liker Land link].
+A collection of tools for operating [NFT](https://docs.like.co/developer/likenft/likecoin-nft-module-spec) and [ISCN](https://docs.like.co/general-guides/decentralized-publishing/what-is-iscn) on [LikeCoin chain](https://like.co).  The toolbox aims to complement the limitation of UI such as [Liker Land][Liker Land link].
 
 
 

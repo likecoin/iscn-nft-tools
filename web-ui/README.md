@@ -1,4 +1,8 @@
-# Nuxt 3 Minimal Starter
+# Web UI for LikeCoin ISCN and NFT tools
+Mainnet: https://likecoin.github.io/iscn-nft-tools/
+Testnet: https://likecoin-iscn-nft-tools-testnet.netlify.app/mint-nft/
+
+Web App version for ISCN and NFT scripts
 
 Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
