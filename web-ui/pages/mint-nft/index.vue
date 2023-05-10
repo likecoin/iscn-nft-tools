@@ -219,18 +219,21 @@ async function onISCNIDInput () {
   try {
     isLoading.value = true
     if (iscnIdInput.value.startsWith('iscn://')) {
-      const { data } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(iscnIdInput.value)}`)
+      const { data, error: fetchError } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(iscnIdInput.value)}`)
+      if (fetchError.value) { throw fetchError.value }
       if (!data?.value) { throw new Error('INVALID_ISCN_ID') }
       const { records, owner } = data.value as any
       iscnData.value = records[0].data
       iscnOwner.value = owner
       step.value = 2
     } else if (iscnIdInput.value.startsWith('likenft')) {
-      const { data } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(iscnIdInput.value)}`)
+      const { data, error: fetchError } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(iscnIdInput.value)}`)
+      if (fetchError.value) { throw fetchError.value }
       if (!data?.value) { throw new Error('INVALID_NFT_CLASS_ID') }
       classData.value = (data.value as any).class
       const parentIscnId = classData.value?.data?.parent?.iscn_id_prefix
-      const { data: resISCN } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(parentIscnId)}`)
+      const { data: resISCN, error: fetchISCNError } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(parentIscnId)}`)
+      if (fetchISCNError.value) { throw fetchISCNError.value }
       const { records, owner } = resISCN.value as any
       iscnData.value = records[0].data
       iscnOwner.value = owner
@@ -255,7 +258,8 @@ async function onISCNFileInput () {
     if (!wallet.value || !signer.value) { throw new Error('NO_WALLET') }
     if (!iscnCreateData.value) { throw new Error('NO_ISCN_DATA') }
     const newIscnId = await signCreateISCNRecord(iscnCreateData.value, signer.value, wallet.value)
-    const { data } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(newIscnId)}`)
+    const { data, error: fetchError } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(newIscnId)}`)
+    if (fetchError.value) { throw fetchError.value }
     if (!data?.value) { throw new Error('INVALID_ISCN_ID') }
     const { records, owner } = data.value as any
     iscnData.value = records[0].data
@@ -300,7 +304,8 @@ async function onClassFileInput () {
     if (!classCreateData.value) { throw new Error('NO_CLASS_DATA') }
     const newClassId = await signCreateNFTClass(classCreateData.value, iscnId.value, signer.value, wallet.value, { nftMaxSupply: classMaxSupply.value })
     await signCreateRoyltyConfig(newClassId, iscnData.value, iscnOwner.value, false, signer.value, wallet.value)
-    const { data } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(newClassId)}`)
+    const { data, error: fetchError } = await useFetch(`${LCD_URL}/cosmos/nft/v1beta1/classes/${encodeURIComponent(newClassId)}`)
+    if (fetchError.value) { throw fetchError.value }
     if (!data?.value) { throw new Error('INVALID_NFT_CLASS_ID') }
     classData.value = (data.value as any).class
     step.value = 3
