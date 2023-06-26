@@ -86,6 +86,7 @@
         </div>
         <input type="file" @change="onClassFileChange">
         <br>
+        <p>You can also create your ISCN using <a :href="`${appLikeCoURL}/new`" target="_blank">app.like.co</a></p>
         <button :disabled="isLoading" @click="onClassFileInput">
           Create
         </button>
