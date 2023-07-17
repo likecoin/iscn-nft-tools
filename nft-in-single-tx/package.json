@@ -1,0 +1,19 @@
+{
+  "name": "nft-in-single-tx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "IS_TESTNET=TRUE node index.js",
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cosmjs/proto-signing": "^0.31.0",
+    "@cosmjs/stargate": "^0.30.1",
+    "@likecoin/iscn-js": "^0.6.4",
+    "cosmjs-types": "^0.8.0"
+  }
+}
