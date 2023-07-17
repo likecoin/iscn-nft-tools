@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "IS_TESTNET=TRUE node index.js",
+    "dev": "IS_TESTNET=TRUE node index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +13,7 @@
   "dependencies": {
     "@cosmjs/proto-signing": "^0.31.0",
     "@cosmjs/stargate": "^0.30.1",
-    "@likecoin/iscn-js": "^0.6.4",
+    "@likecoin/iscn-js": "^0.6.5",
     "cosmjs-types": "^0.8.0"
   }
 }
