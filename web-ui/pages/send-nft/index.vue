@@ -55,6 +55,7 @@
           <tr v-for="entry in nftResultData" :key="entry[0]">
             <td>{{ entry.address }}</td>
             <td>{{ entry.classId }}</td>
+            <td>{{ entry.nftId }}</td>
             <td>{{ entry.memo }}</td>
             <td>{{ entry.status }}</td>
           </tr>
