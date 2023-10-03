@@ -21,3 +21,7 @@ export function downloadBlob (content: string, filename: string, contentType: st
   pom.setAttribute('download', filename)
   pom.click()
 }
+
+export function sleep (time: number) {
+  return new Promise((resolve) => { setTimeout(resolve, time) })
+}

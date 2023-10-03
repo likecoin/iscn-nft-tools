@@ -168,6 +168,7 @@ import { stringify } from 'csv-stringify/sync'
 
 import { useWalletStore } from '~/stores/wallet'
 import { LCD_URL, APP_LIKE_CO_URL, LIKER_LAND_URL } from '~/constant'
+import { sleep } from '~/utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -259,6 +260,8 @@ async function onISCNFileInput () {
     if (!wallet.value || !signer.value) { throw new Error('NO_WALLET') }
     if (!iscnCreateData.value) { throw new Error('NO_ISCN_DATA') }
     const newIscnId = await signCreateISCNRecord(iscnCreateData.value, signer.value, wallet.value)
+    // HACK: wait 1 block before querying
+    await sleep(6000)
     const { data, error: fetchError } = await useFetch(`${LCD_URL}/iscn/records/id?iscn_id=${encodeURIComponent(newIscnId)}`)
     if (fetchError.value) { throw fetchError.value }
     if (!data?.value) { throw new Error('INVALID_ISCN_ID') }
