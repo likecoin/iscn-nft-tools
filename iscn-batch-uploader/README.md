@@ -4,7 +4,7 @@ Batch upload your content metadata from csv to ISCN
 
 ## Installation
 
-Run with `node.js >= 10`, `npm >= 6`.
+Run with `node.js >= 16`, `npm >= 8`.
 
 ```bash
 npm install
