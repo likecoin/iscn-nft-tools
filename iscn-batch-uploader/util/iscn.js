@@ -96,20 +96,15 @@ async function estimateISCNFee(data, gasPrice) {
   let totalISCNFee = new BigNumber(0);
   try {
     for (let chunkStart = 0; chunkStart < data.length; chunkStart += chunkSize) {
-      const gasFeePromises = [];
-      const ISCNFeePromises = [];
-      for (let i = chunkStart; i < chunkStart + chunkSize && i < data.length; i += 1) {
-        gasFeePromises.push(signingClient.estimateISCNTxGas(data[i], { gasPrice }));
-        ISCNFeePromises.push(signingClient.estimateISCNTxFee(data[i]));
-      }
+      const promises = data.slice(chunkStart, chunkStart + chunkSize)
+        .map((payload) => signingClient.esimateISCNTxGasAndFee(payload, { gasPrice }));
       /* eslint-disable no-await-in-loop */
-      const gasFees = await Promise.all(gasFeePromises);
-      const ISCNFees = await Promise.all(ISCNFeePromises);
+      const fees = await Promise.all(promises);
       /* eslint-enable no-await-in-loop */
-      totalGasFee = gasFees.reduce(
-        (sum, curr) => sum.plus(curr.fee.amount[0].amount), totalGasFee,
+      totalGasFee = fees.reduce(
+        (sum, { gas }) => sum.plus(gas.fee.amount[0].amount), totalGasFee,
       );
-      totalISCNFee = ISCNFees.reduce((sum, curr) => sum.plus(curr.amount), totalISCNFee);
+      totalISCNFee = fees.reduce((sum, { iscnFee }) => sum.plus(iscnFee.amount), totalISCNFee);
     }
     return totalGasFee.plus(totalISCNFee).shiftedBy(-9).toFixed();
   } catch (err) {
