@@ -14,7 +14,7 @@ const {
 
 const DEFAULT_OUTPUT_PATH = 'output.csv';
 const DEFAULT_ARRAY_DELIMITER = ',';
-const ARRAY_TYPE_FIELDS = ['keywords'];
+const ARRAY_TYPE_FIELDS = ['keywords', 'sameAs'];
 const GAS_PRICE = 10;
 const ISCN_RECORD_NOTES = `iscn-batch-uploader ${version}`;
 
@@ -30,6 +30,7 @@ function convertFieldNames(data) {
     arweaveId,
     fileSHA256,
     recordNotes,
+    sameAs,
     ...fields // any other field exists in csv will be put into contentMetadata
   } = data;
   const contentFingerprints = [];
@@ -58,6 +59,7 @@ function convertFieldNames(data) {
     author,
     usageInfo: info,
     recordNotes: recordNotes || ISCN_RECORD_NOTES,
+    sameAs,
   };
 }
 
