@@ -1,0 +1,25 @@
+#iscn-page-book-info p {
+  text-indent: -4em;
+  margin-left: 4em;
+  margin-top: 1em;
+}
+
+#iscn-qr-code {
+  display: block;
+  text-align: center;
+  margin: 20px auto;
+}
+
+#iscn-prefix {
+  display: block;
+  text-align: center;
+  margin: 20px auto;
+  width: 400px;
+}
+
+#depub-disclaimer {
+  display: block;
+  text-align: center;
+  margin: 60px auto;
+  width: 400px;
+}

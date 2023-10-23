@@ -1,0 +1,19 @@
+{
+  "name": "add-iscn-qr-code-to-epub",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Wei-Jun Hung",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "canvas": "^2.11.2",
+    "cheerio": "^1.0.0-rc.12",
+    "csv": "^6.3.5",
+    "dayjs": "^1.11.10",
+    "qrcode": "^1.5.3"
+  }
+}
