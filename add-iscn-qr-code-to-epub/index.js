@@ -107,8 +107,8 @@ function saveCanvas(canvas, path) {
  */
 function updateContentOPF(opf$, iscnPageHref, iscnQRCodeHref) {
   const manifest = opf$('manifest');
-  manifest.append(`  <item id="a" href="iscn.css" media-type="text/css" />\n  `);
-  manifest.append(`  <item id="b" href="${iscnQRCodeHref}" media-type="image/png" />\n  `);
+  manifest.append(`  <item id="iscn-css" href="iscn.css" media-type="text/css" />\n  `);
+  manifest.append(`  <item id="iscn-qr-code-image" href="${iscnQRCodeHref}" media-type="image/png" />\n  `);
   manifest.append(`  <item id="iscn-page" href="${iscnPageHref}" media-type="application/xhtml+xml" />\n  `);
 
   const spine = opf$('spine');
