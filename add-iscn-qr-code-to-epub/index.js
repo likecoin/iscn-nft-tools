@@ -1,4 +1,5 @@
 import AdmZip from 'adm-zip';
+import archiver from 'archiver';
 import { createCanvas, loadImage, Image } from 'canvas';
 import { load } from 'cheerio';
 import { parse } from 'csv-parse/sync';
@@ -157,6 +158,28 @@ function addDepubDisclaimer(xhtml$) {
   p.text(config.DEPUB_DISCLAIMER);
 }
 
+async function zipToEpub(folderPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    const epubFilename = path.basename(outputPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const output = fs.createWriteStream(outputPath);
+    output.on('close', function () {
+      console.log(`[Added ISCN QR Code] ${epubFilename}`);
+      resolve();
+    });
+    output.on('error', function () {
+      console.error(`[Error] Cannot add ISCN to ${epubFilename}`);
+      reject();
+    });
+    archive.pipe(output);
+    // mimetype must be the first file and must not be compressed
+    archive.append(fs.createReadStream(`${folderPath}/mimetype`), { name: 'mimetype', store: true });
+    archive.directory(`${folderPath}/META-INF`, 'META-INF');
+    archive.directory(`${folderPath}/OEBPS`, 'OEBPS');
+    archive.finalize();
+  });
+}
+
 /**
  * @param {string} epubPath
  * @param {string} iscnPrefix
@@ -165,7 +188,7 @@ function addDepubDisclaimer(xhtml$) {
 async function addISCNQRCode(epubPath, iscnPrefix, outputFolder = OUTPUT_FOLDER) {
   // unzip
   const { unzippedFolderPath, basename } = unzipEpub(epubPath, outputFolder);
-  
+
   try {
     // create QR code
     const canvas = await createQRCodeCanvas(iscnPrefix);
@@ -202,11 +225,8 @@ async function addISCNQRCode(epubPath, iscnPrefix, outputFolder = OUTPUT_FOLDER)
     fs.writeFileSync(iscnXHTMLPath, updatedISCNXHTMLString, 'utf-8');
 
     // zip
-    const epubFilename = path.basename(epubPath);
-    const zip = new AdmZip();
-    zip.addLocalFolder(unzippedFolderPath);
-    zip.writeZip(`${outputFolder}/${epubFilename}`);
-    console.log(`[Added ISCN QR Code] ${basename}`);
+    const outputPath = `${outputFolder}/${basename}.epub`;
+    await zipToEpub(unzippedFolderPath, outputPath);
   } catch (error) {
     console.error(`[Error] Cannot add ISCN to ${basename}`);
     throw error;
