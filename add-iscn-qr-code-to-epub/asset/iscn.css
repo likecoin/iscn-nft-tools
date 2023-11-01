@@ -1,25 +1,49 @@
-#iscn-page-book-info p {
-  text-indent: -4em;
-  margin-left: 4em;
-  margin-top: 1em;
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding: 0.5em 2vw 4em;
+}
+
+footer {
+  border-top: 1px solid #ccc;
+  padding: 0.5em;
+}
+
+#iscn-page-book-info {
+  margin-top: 16px;
+  font-size: 0.8em;
+}
+
+#iscn-page-book-info th,
+#iscn-page-book-info td {
+  padding: 0.25em 2vw;
+  vertical-align: top;
+}
+
+#iscn-page-book-info th {
+  text-align: left;
+  white-space: nowrap;
 }
 
 #iscn-qr-code {
   display: block;
-  text-align: center;
-  margin: 20px auto;
+  margin-top: 0.5em;
 }
 
 #iscn-prefix {
-  display: block;
-  text-align: center;
-  margin: 20px auto;
-  width: 400px;
+  font-family: monospace;
+  word-break: break-all;
 }
 
 #depub-disclaimer {
-  display: block;
   text-align: center;
-  margin: 60px auto;
-  width: 400px;
 }

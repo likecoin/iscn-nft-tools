@@ -20,7 +20,7 @@ const LOGO_SIZE = 64;
 const INPUT_FOLDER = 'input';
 const OUTPUT_FOLDER = 'output';
 const ASSET_FOLDER = 'asset';
-const LIKECOIN_LOGO_PNG = 'LikeCoin-logo.png';
+const ISCN_LOGO_IMG = 'iscn-logo.svg';
 const ISCN_XHTML = 'iscn.xhtml';
 const ISCN_CSS = 'iscn.css';
 const ISCN_LIST_CSV = `list.csv`;
@@ -57,10 +57,11 @@ function getISCNURL(iscnPrefix) {
 
 async function createQRCodeCanvas(iscnPrefix) {
   const iscnURL = getISCNURL(iscnPrefix);
-  const logoImage = await loadImage(`${ASSET_FOLDER}/${LIKECOIN_LOGO_PNG}`);
+  const logoImage = await loadImage(`${ASSET_FOLDER}/${ISCN_LOGO_IMG}`);
   const initQRCode = await QRCode.toDataURL(iscnURL, {
     color: {
-      dark: LIKE_GREEN,
+      light: LIKE_GREEN,
+      dark: '#fff',
     },
     errorCorrectionLevel: 'H',
     margin: 2,
@@ -72,13 +73,15 @@ async function createQRCodeCanvas(iscnPrefix) {
   img.src = initQRCode;
   ctx.drawImage(img, 0, 0, QR_CODE_SIZE, QR_CODE_SIZE);
 
-  const logoPosition = (canvas.width - LOGO_SIZE) / 2;
-
-  // draw blank white square
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(logoPosition, logoPosition, LOGO_SIZE, LOGO_SIZE);
+  // draw blank white circle
+  const circleCenter = canvas.width / 2;
+  ctx.fillStyle = LIKE_GREEN;
+  ctx.beginPath();
+  ctx.arc(circleCenter, circleCenter, LOGO_SIZE / 2 + 2, 0, 2 * Math.PI, false);
+  ctx.fill();
 
   // draw logo
+  const logoPosition = (canvas.width - LOGO_SIZE) / 2;
   ctx.drawImage(logoImage, logoPosition, logoPosition, LOGO_SIZE, LOGO_SIZE);
 
   return canvas;
@@ -136,26 +139,26 @@ function readInfoMap(opf$) {
  * @param {string} htmlToAppend
  */
 function addBookInfo(xhtml$, infoItemMap) {
-  const div = xhtml$('body > div#iscn-page-book-info');
+  const div = xhtml$('body table#iscn-page-book-info');
   const itemsString = [...infoItemMap]
     .filter(([key, value]) => key && value)
     .map(([key, value]) => (
-      `    <p><strong>${key}</strong>: ${value}</p>\n`
+      `    <tr><th>${key}: </th><td>${value}</td></tr>\n`
     ))
     .join('');
-  div.append(itemsString);
+  div.prepend(itemsString);
 }
 
 function setISCNLink(xhtml$, iscnPrefix) {
-  const a = xhtml$('body > a#iscn-prefix');
+  const a = xhtml$('body a#iscn-prefix');
   const iscnURL = getISCNURL(iscnPrefix);
   a.attr('href', iscnURL);
   a.text(iscnPrefix);
 }
 
-function addDepubDisclaimer(xhtml$) {
-  const p = xhtml$('body > p#depub-disclaimer');
-  p.text(config.DEPUB_DISCLAIMER);
+function addFooterDisclaimer(xhtml$) {
+  const footer = xhtml$('body #depub-disclaimer');
+  footer.text(config.DEPUB_DISCLAIMER);
 }
 
 async function zipToEpub(folderPath, outputPath) {
@@ -185,7 +188,7 @@ async function zipToEpub(folderPath, outputPath) {
  * @param {string} iscnPrefix
  * @param {string} outputFolder
  */
-async function addISCNQRCode(epubPath, iscnPrefix, outputFolder = OUTPUT_FOLDER) {
+async function injectISCNQRCodePage(epubPath, iscnPrefix, outputFolder = OUTPUT_FOLDER) {
   // unzip
   const { unzippedFolderPath, basename } = unzipEpub(epubPath, outputFolder);
 
@@ -220,7 +223,7 @@ async function addISCNQRCode(epubPath, iscnPrefix, outputFolder = OUTPUT_FOLDER)
     });
     addBookInfo(iscnXHTML$, infoMap);
     setISCNLink(iscnXHTML$, iscnPrefix);
-    addDepubDisclaimer(iscnXHTML$);
+    addFooterDisclaimer(iscnXHTML$);
     const updatedISCNXHTMLString = iscnXHTML$.xml();
     fs.writeFileSync(iscnXHTMLPath, updatedISCNXHTMLString, 'utf-8');
 
@@ -253,7 +256,7 @@ async function run() {
     }
 
     const iscnPrefix = getISCNPrefix(iscnId);
-    await addISCNQRCode(epubPath, iscnPrefix);
+    await injectISCNQRCodePage(epubPath, iscnPrefix);
   }
 }
 
