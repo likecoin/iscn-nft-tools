@@ -1,4 +1,4 @@
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { TimeoutError } from '@cosmjs/stargate';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
 import fs from 'fs';
@@ -10,7 +10,7 @@ import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination.j
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx.js';
 /* eslint-enable import/extensions */
 import {
-  MNEMONIC, WAIT_TIME, RPC_ENDPOINT, DENOM, MEMO,
+  MNEMONIC, PRIVATE_KEY, WAIT_TIME, RPC_ENDPOINT, DENOM, MEMO,
   // eslint-disable-next-line import/extensions
 } from './config/config.js';
 
@@ -86,7 +86,11 @@ function getGasFee(count) {
 async function run() {
   try {
     const data = await readCsv('list.csv');
-    const signer = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' });
+    if (!MNEMONIC && !PRIVATE_KEY) throw new Error('need MNEMONIC or PRIVATE_KEY');
+    if (MNEMONIC && PRIVATE_KEY) console.warn('MNEMONIC and PRIVATE_KEY both exist, using MNEMONIC');
+    const signer = MNEMONIC
+      ? await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
+      : await DirectSecp256k1Wallet.fromKey(Buffer.from(PRIVATE_KEY, 'hex'), 'like');
     const [firstAccount] = await signer.getAccounts();
 
     const nftsDataObject = {};

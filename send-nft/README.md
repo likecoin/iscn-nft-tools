@@ -16,7 +16,9 @@ Change the data in `./list.csv` (reference `./list_example.csv`)
 
 Change the data in `./config/config.js`
 
-Where `MNEMONIC` is your mnemonic phrase , `WAIT_TIME` is wait time after console (before send)
+DEFINE `MNEMONIC` or `PRIVATE_KEY`
+
+Where `MNEMONIC` is your mnemonic phrase, `PRIVATE_KEY` is the hex of private key, `WAIT_TIME` is wait time after console (before send)
 
 ## Usage
 
