@@ -1,4 +1,4 @@
-export const { MNEMONIC, IS_TESTNET } = process.env;
+export const { MNEMONIC, PRIVATE_KEY, IS_TESTNET } = process.env;
 export const MEMO = '';
 export const WAIT_TIME = 10000; // In ms
 
