@@ -1,6 +1,6 @@
-# NFT Book Batch Uploader
+# NFT Book Mint and List
 
-Batch create and list NFT Book from ISCN
+Batch mint and list NFT Book from ISCN
 
 ## Installation
 
