@@ -12,6 +12,9 @@ export const GAS_PRICE = 10;
 export const MNEMONIC = '';
 export const NFT_PREFIX = '';
 export const CLASS_SYMBOL = '';
+export const NFT_META_COLLECTION_ID = '';
+export const NFT_META_COLLECTION_NAME = '';
+export const NFT_META_COLLECTION_DESCRIPTION = '';
 
 export const SUCCESS_URL = '';
 export const CANCEL_URL = '';

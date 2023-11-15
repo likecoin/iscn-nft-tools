@@ -21,6 +21,9 @@ import {
   LIKER_LAND_URL,
   DEFAULT_CSV,
   NFT_PREFIX,
+  NFT_META_COLLECTION_ID,
+  NFT_META_COLLECTION_NAME,
+  NFT_META_COLLECTION_DESCRIPTION,
   CLASS_SYMBOL,
   SUCCESS_URL,
   CANCEL_URL,
@@ -89,7 +92,14 @@ async function queryClassId(classId, retryTime = 3) {
 
 async function run() {
   if (!NFT_PREFIX) throw new Error('NFT_PREFIX is not set');
-  if (!CLASS_SYMBOL) throw new Error('CLASS_SYMBOL is not set');
+  if (!CLASS_SYMBOL) console.warn('CLASS_SYMBOL is not set');
+  if (!NFT_META_COLLECTION_ID) console.warn('NFT_META_COLLECTION_ID is not set');
+  if (!NFT_META_COLLECTION_NAME) console.warn('NFT_META_COLLECTION_NAME is not set');
+  if (!NFT_META_COLLECTION_DESCRIPTION) console.warn('NFT_META_COLLECTION_DESCRIPTION is not set');
+
+  if (!CLASS_SYMBOL || !NFT_META_COLLECTION_ID || !NFT_META_COLLECTION_NAME || !NFT_META_COLLECTION_DESCRIPTION) {
+    await sleep(5000);
+  }
 
   const args = process.argv.slice(2);
   const filename = args[0] || DEFAULT_CSV;
@@ -135,9 +145,9 @@ async function run() {
           name,
           image: imageUrl,
           external_url: `${APP_LIKE_CO_URL}/view/${encodeURIComponent(iscnPrefix)}`,
-          nft_meta_collection_id: 'project_gutenberg_nft_book',
-          nft_meta_collection_name: 'Project Gutenberg NFT Book',
-          nft_meta_collection_description: 'Project Gutenberg NFT Book by Liker Land'
+          nft_meta_collection_id: NFT_META_COLLECTION_ID,
+          nft_meta_collection_name: NFT_META_COLLECTION_NAME,
+          nft_meta_collection_description: NFT_META_COLLECTION_DESCRIPTION,
         }
       };
       const newClassMsg = formatMsgNewClass(address, iscnPrefix, nftClassData);
