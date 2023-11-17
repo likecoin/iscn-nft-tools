@@ -8,6 +8,9 @@ import { addParamToUrl } from '.'
 import { RPC_URL, LIKER_NFT_FEE_WALLET } from '~/constant'
 import network from '~/constant/network'
 
+const DEFAULT_GAS_AMOUNT = 200000
+const DEFAULT_GAS_PRICE = 10000
+
 export const royaltyRateBasisPoints = 1000 // 10% as in current chain config
 export const royaltyFeeAmount = 25000 // 2.5%
 export const royaltyUserAmount = 1000000 - royaltyFeeAmount // 1000000 - fee
@@ -34,16 +37,15 @@ export function getGasFee (count: number) {
     amount: [
       {
         denom: network.feeCurrencies[0].coinMinimalDenom,
-        amount: `${new BigNumber(count)
-          .shiftedBy(network.feeCurrencies[0].coinDecimals)
-          .shiftedBy(-4) // *10000
-          .toFixed(0)}`
+        amount: new BigNumber(count)
+          .multipliedBy(DEFAULT_GAS_AMOUNT)
+          .multipliedBy(DEFAULT_GAS_PRICE)
+          .toFixed(0)
       }
     ],
-    gas: `${new BigNumber(count)
-      .shiftedBy(network.feeCurrencies[0].coinDecimals)
-      .shiftedBy(-3) // * 1000
-      .toFixed(0)}`
+    gas: new BigNumber(count)
+      .multipliedBy(DEFAULT_GAS_AMOUNT)
+      .toFixed(0)
   }
 }
 

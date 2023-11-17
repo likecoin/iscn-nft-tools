@@ -12,10 +12,15 @@ const memo = process.env.MEMO || '';
 ////////////// adjust delay //////////////
 const waitTime = Number(10000)
 
+const DEFAULT_GAS_AMOUNT = 200000;
+const DEFAULT_GAS_PRICE = 10000;
+
 const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, { prefix: 'like' });
 const [firstAccount] = await wallet.getAccounts();
+
 const rpcEndpoint = process.env.IS_TESTNET ? 'https://node.testnet.like.co/rpc/' : 'https://mainnet-node.like.co/rpc/';
 const denom = process.env.IS_TESTNET ? "nanoekil" : "nanolike"
+
 const client = await SigningStargateClient.connectWithSigner(
 	rpcEndpoint,
 	wallet,
@@ -55,11 +60,16 @@ async function run() {
 	const fee = {
 		amount: [
 			{
-				denom: denom,
-				amount: `${new BigNumber(msgAnyArray.length).shiftedBy(6).toFixed(0)}`,
+				denom,
+				amount: new BigNumber(msgAnyArray.length)
+					.multipliedBy(DEFAULT_GAS_AMOUNT)
+					.multipliedBy(DEFAULT_GAS_PRICE)
+					.toFixed(0),
 			},
 		],
-		gas: `${new BigNumber(msgAnyArray.length).shiftedBy(5).toFixed(0)}`,
+		gas: new BigNumber(msgAnyArray.length)
+			.multipliedBy(DEFAULT_GAS_AMOUNT)
+			.toFixed(0),
 	};
 
 	console.log('total:', total)

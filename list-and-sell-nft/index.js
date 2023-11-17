@@ -11,9 +11,9 @@ import {
   // eslint-disable-next-line import/extensions
 } from './config/config.js';
 
-const defaultExpirationInMs = Date.now() + 15552000000
-const gasNeedDigits = 5;
-const amountNeedDigits = 6;
+const defaultExpirationInMs = Date.now() + 15552000000;
+const DEFAULT_GAS_AMOUNT = 200000;
+const DEFAULT_GAS_PRICE = 10000;
 
 function sleep(ms) {
   return new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -52,10 +52,15 @@ function getGasFee(count) {
     amount: [
       {
         denom: DENOM,
-        amount: `${new BigNumber(count).shiftedBy(amountNeedDigits).toFixed(0)}`,
+        amount: new BigNumber(count)
+          .multipliedBy(DEFAULT_GAS_AMOUNT)
+          .multipliedBy(DEFAULT_GAS_PRICE)
+          .toFixed(0),
       },
     ],
-    gas: `${new BigNumber(count).shiftedBy(gasNeedDigits).toFixed(0)}`,
+    gas: new BigNumber(count)
+      .multipliedBy(DEFAULT_GAS_AMOUNT)
+      .toFixed(0),
   };
 }
 
