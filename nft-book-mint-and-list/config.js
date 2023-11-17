@@ -10,6 +10,7 @@ export const DEFAULT_CSV = 'list.csv';
 export const GAS_PRICE = 10000;
 
 export const MNEMONIC = '';
+export const PRIVATE_KEY = '';
 export const NFT_PREFIX = '';
 export const CLASS_SYMBOL = '';
 export const NFT_META_COLLECTION_ID = '';

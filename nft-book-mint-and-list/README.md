@@ -13,7 +13,7 @@ npm install
 ## Usage
 
 1. Prepare `list.csv` with the ISCNs and the corresponding metadata of the books to be minted and listed.
-2. Update `MNEMONIC` in `./config.js` with the mnemonic of the wallet that owns the ISCNs.
+2. Update `MNEMONIC` or `PRIVATE_KEY` in `./config.js` with the mnemonic or private key of the wallet that owns the ISCNs.
 3. Update `NFT_PREFIX`, `CLASS_SYMBOL`, `NFT_META_COLLECTION_ID`, `NFT_META_COLLECTION_NAME`, `NFT_META_COLLECTION_DESCRIPTION` in `./config.js` with the desired values. For example:
     ```js
     export const NFT_PREFIX = 'PGBOOK';

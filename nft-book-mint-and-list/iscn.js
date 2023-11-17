@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import axios from 'axios';
-import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { Secp256k1HdWallet, Secp256k1Wallet } from '@cosmjs/amino';
+import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
 import jsonStringify from 'fast-json-stable-stringify'
 
@@ -11,6 +11,7 @@ import {
   CHAIN_ID,
   DENOM,
   MNEMONIC,
+  PRIVATE_KEY,
 } from './config.js';
 
 let signingWallet;
@@ -20,8 +21,12 @@ let iscnSigningClient;
 let signingStargateClient;
 
 async function getWallet() {
+  if (!MNEMONIC && !PRIVATE_KEY) throw new Error('Need MNEMONIC or PRIVATE_KEY');
+  if (MNEMONIC && PRIVATE_KEY) console.warn('Both MNEMONIC and PRIVATE_KEY are provided, using MNEMONIC');
   if (!signingWallet) {
-    signingWallet = await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' });
+    signingWallet = MNEMONIC
+      ? await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
+      : await DirectSecp256k1Wallet.fromKey(PRIVATE_KEY, { prefix: 'like' });
   }
   return signingWallet;
 }
@@ -84,7 +89,9 @@ export function validateISCNPrefix(input) {
 
 export async function getToken() {
   try {
-    const aminoSigner = await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' });
+    const aminoSigner = MNEMONIC 
+      ? await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
+      : await Secp256k1Wallet.fromKey(PRIVATE_KEY, { prefix: 'like' });
     const [firstAccount] = await aminoSigner.getAccounts();
     const { address } = firstAccount;
     const ts = Date.now()
