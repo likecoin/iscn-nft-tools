@@ -14,7 +14,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@cosmjs/stargate": "^0.30.1",
-    "@likecoin/iscn-js": "^0.6.8",
+    "@likecoin/iscn-js": "^0.6.9",
     "@likecoin/iscn-message-types": "^0.0.7",
     "bignumber.js": "^9.0.1",
     "cosmjs-types": "^0.8.0",

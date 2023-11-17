@@ -11,10 +11,10 @@
   "author": "",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@cosmjs/proto-signing": "^0.28.13",
-    "@cosmjs/stargate": "^0.28.13",
+    "@cosmjs/proto-signing": "^0.30.1",
+    "@cosmjs/stargate": "^0.30.1",
     "bignumber.js": "^9.1.0",
-    "cosmjs-types": "^0.5.1",
+    "cosmjs-types": "^0.8.0",
     "neat-csv": "^7.0.0"
   }
 }
