@@ -7,7 +7,7 @@ export const DENOM = IS_TESTNET ? 'nanoekil' : 'nanolike';
 export const CHAIN_ID = IS_TESTNET ? 'likecoin-testnet-5' : 'likecoin-mainnet-2';
 
 export const DEFAULT_CSV = 'list.csv';
-export const GAS_PRICE = 10;
+export const GAS_PRICE = 10000;
 
 export const MNEMONIC = '';
 export const NFT_PREFIX = '';
