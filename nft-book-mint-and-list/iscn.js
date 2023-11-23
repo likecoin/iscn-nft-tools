@@ -26,7 +26,7 @@ async function getWallet() {
   if (!signingWallet) {
     signingWallet = MNEMONIC
       ? await DirectSecp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
-      : await DirectSecp256k1Wallet.fromKey(PRIVATE_KEY, { prefix: 'like' });
+      : await DirectSecp256k1Wallet.fromKey(PRIVATE_KEY, 'like');
   }
   return signingWallet;
 }
@@ -91,7 +91,7 @@ export async function getToken() {
   try {
     const aminoSigner = MNEMONIC 
       ? await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
-      : await Secp256k1Wallet.fromKey(PRIVATE_KEY, { prefix: 'like' });
+      : await Secp256k1Wallet.fromKey(PRIVATE_KEY, 'like');
     const [firstAccount] = await aminoSigner.getAccounts();
     const { address } = firstAccount;
     const ts = Date.now()
