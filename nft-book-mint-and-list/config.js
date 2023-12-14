@@ -11,11 +11,11 @@ export const GAS_PRICE = 10000;
 
 export const MNEMONIC = '';
 export const PRIVATE_KEY = '';
-export const NFT_PREFIX = '';
-export const CLASS_SYMBOL = '';
-export const NFT_META_COLLECTION_ID = '';
-export const NFT_META_COLLECTION_NAME = '';
-export const NFT_META_COLLECTION_DESCRIPTION = '';
+export const NFT_PREFIX = 'BOOK';
+export const CLASS_SYMBOL = 'BOOK';
+export const NFT_META_COLLECTION_ID = 'nft_book';
+export const NFT_META_COLLECTION_NAME = 'NFT Book';
+export const NFT_META_COLLECTION_DESCRIPTION = 'NFT Book by Liker Land';
 
 export const SUCCESS_URL = '';
 export const CANCEL_URL = '';
