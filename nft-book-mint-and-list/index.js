@@ -59,7 +59,7 @@ async function findListing(classId) {
   }
 }
 
-async function createListing(classId, payload, token) {
+async function createListing(classId, payload, token, retryTime = 2) {
   try {
     const { data } = await axios.post(`${LIKE_CO_API}/likernft/book/store/${classId}/new`, payload, {
       headers: {
@@ -68,8 +68,13 @@ async function createListing(classId, payload, token) {
     });
     return data;
   } catch (error) {
-    console.error(`[Error] Cannot create listing of ${classId}`);
-    throw error;
+    if (!retryTime) {
+      console.error(`[Error] Cannot create listing of ${classId}`);
+      throw error;
+    }
+    console.error(`Retry creating listing of ${classId} in 6s`);
+    await sleep(6000);
+    return createListing(classId, payload, token, retryTime - 1);
   }
 }
 
