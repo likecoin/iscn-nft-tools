@@ -10,6 +10,7 @@ import {
   getISCNQueryClient,
   getISCNSigningClient,
   getSequence,
+  getExistingClassCount,
   getSignerData,
   getToken,
   validateISCNPrefix,
@@ -138,102 +139,96 @@ async function run() {
         editionPriceUSD,
       } = record;
       validateISCNPrefix(iscnPrefix)
-      const classId = calculateNFTClassIdByISCNId(iscnPrefix);
+      const existingClassCount = await getExistingClassCount(iscnPrefix);
+      const classId = calculateNFTClassIdByISCNId(iscnPrefix, existingClassCount);
 
-      let isClassIdExisted = await queryClassId(classId, 0);
-
-      if (!isClassIdExisted) {
-        const nftClassData = {
+      const nftClassData = {
+        name,
+        symbol: CLASS_SYMBOL,
+        description: classDescription,
+        metadata: {
           name,
-          symbol: CLASS_SYMBOL,
-          description: classDescription,
-          metadata: {
-            name,
-            image: imageUrl,
-            external_url: `${APP_LIKE_CO_URL}/view/${encodeURIComponent(iscnPrefix)}`,
-            nft_meta_collection_id: NFT_META_COLLECTION_ID,
-            nft_meta_collection_name: NFT_META_COLLECTION_NAME,
-            nft_meta_collection_description: NFT_META_COLLECTION_DESCRIPTION,
-          }
-        };
-        const newClassMsg = formatMsgNewClass(address, iscnPrefix, nftClassData);
-
-        const mapNFTData = (i) => ({
-          id: `${NFT_PREFIX}-${i.toString().padStart(4, '0')}`,
-          metadata: {
-            name,
-            image: imageUrl,
-            external_url: ``,
-          },
-        });
-        const mintNFTMsgs = Array.from({ length: mintCount }, (_, i) => i)
-          .map(i => formatMsgMintNFT(address, classId, mapNFTData(i)));
-        const messages = [newClassMsg, ...mintNFTMsgs];
-        const iscnSigningClient = await getISCNSigningClient();
-
-        async function retrySendMessages() {
-          try {
-            const res = await iscnSigningClient.sendMessages(address, messages, {
-              accountNumber,
-              sequence,
-              chainId,
-              gasPrice: GAS_PRICE,
-              memo: '',
-            });
-            sequence += 1;
-            return res;
-          } catch (err) {
-            console.error(err);
-            if (err.message?.includes('code 32')) {
-              console.error(`Nonce ${sequence} failed, trying to refetch sequence`);
-              console.error(`Retrying ${name} in 15s`);
-              await sleep(15000);
-              sequence = await getSequence();
-              return retrySendMessages();
-            }
-            return null;
-          }
+          image: imageUrl,
+          external_url: `${APP_LIKE_CO_URL}/view/${encodeURIComponent(iscnPrefix)}`,
+          nft_meta_collection_id: NFT_META_COLLECTION_ID,
+          nft_meta_collection_name: NFT_META_COLLECTION_NAME,
+          nft_meta_collection_description: NFT_META_COLLECTION_DESCRIPTION,
         }
+      };
+      const newClassMsg = formatMsgNewClass(address, iscnPrefix, nftClassData);
 
-        const res = await retrySendMessages();
-        if (!res || res.code !== 0) {
-          console.error(`Skip ${name}`);
-          continue;
+      const mapNFTData = (i) => ({
+        id: `${NFT_PREFIX}-${i.toString().padStart(4, '0')}`,
+        metadata: {
+          name,
+          image: imageUrl,
+          external_url: ``,
+        },
+      });
+      const mintNFTMsgs = Array.from({ length: mintCount }, (_, i) => i)
+        .map(i => formatMsgMintNFT(address, classId, mapNFTData(i)));
+      const messages = [newClassMsg, ...mintNFTMsgs];
+      const iscnSigningClient = await getISCNSigningClient();
+
+      async function retrySendMessages() {
+        try {
+          const res = await iscnSigningClient.sendMessages(address, messages, {
+            accountNumber,
+            sequence,
+            chainId,
+            gasPrice: GAS_PRICE,
+            memo: '',
+          });
+          sequence += 1;
+          return res;
+        } catch (err) {
+          console.error(err);
+          if (err.message?.includes('code 32')) {
+            console.error(`Nonce ${sequence} failed, trying to refetch sequence`);
+            console.error(`Retrying ${name} in 15s`);
+            await sleep(15000);
+            sequence = await getSequence();
+            return retrySendMessages();
+          }
+          return null;
         }
-
-        isClassIdExisted = await queryClassId(classId, 3);
       }
 
-      if (!isClassIdExisted) {
+      const res = await retrySendMessages();
+      if (!res || res.code !== 0) {
+        console.error(`Skip ${name}`);
+        continue;
+      }
+
+      const foundClassId = await queryClassId(classId, 3);
+
+      if (!foundClassId) {
         console.error(`Class ${classId} not found, skip ${name}`);
         continue;
       }
 
-      const isListingExisted = await findListing(classId, token);
-      if (!isListingExisted) {
-        const prices = [{
-          name: {
-            en: editionTitleEn,
-            zh: editionTitleZh,
-          },
-          description: {
-            en: editionDescriptionEn,
-            zh: editionDescriptionZh,
-          },
-          stock: listCount,
-          priceInDecimal: editionPriceUSD * 100,
-        }]
+      const prices = [{
+        name: {
+          en: editionTitleEn,
+          zh: editionTitleZh,
+        },
+        description: {
+          en: editionDescriptionEn,
+          zh: editionDescriptionZh,
+        },
+        stock: listCount,
+        priceInDecimal: editionPriceUSD * 100,
+      }]
 
-        const newBookListingPayload = { prices };
-        if (SUCCESS_URL) newBookListingPayload.successUrl = SUCCESS_URL;
-        if (CANCEL_URL) newBookListingPayload.cancelUrl = CANCEL_URL;
-        if (MODERATOR_WALLETS.length) newBookListingPayload.moderatorWallets = MODERATOR_WALLETS;
-        if (NOTIFICATION_EMAILS.length) newBookListingPayload.notificationEmails = NOTIFICATION_EMAILS;
-        if (CONNECTED_WALLETS.length) newBookListingPayload.connectedWallets = CONNECTED_WALLETS;
+      const newBookListingPayload = { prices };
+      if (SUCCESS_URL) newBookListingPayload.successUrl = SUCCESS_URL;
+      if (CANCEL_URL) newBookListingPayload.cancelUrl = CANCEL_URL;
+      if (MODERATOR_WALLETS.length) newBookListingPayload.moderatorWallets = MODERATOR_WALLETS;
+      if (NOTIFICATION_EMAILS.length) newBookListingPayload.notificationEmails = NOTIFICATION_EMAILS;
+      if (CONNECTED_WALLETS.length) newBookListingPayload.connectedWallets = CONNECTED_WALLETS;
 
-        await createListing(classId, newBookListingPayload, token);
-        console.log(name, `${LIKER_LAND_URL}/nft/class/${classId}`);
-      }
+      await createListing(classId, newBookListingPayload, token);
+      console.log(name, `${LIKER_LAND_URL}/nft/class/${classId}`);
       
       record.classId = classId;
       updateCSV(records, filename);
