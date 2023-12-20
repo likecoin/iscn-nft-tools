@@ -85,8 +85,16 @@ export async function getSequence() {
 export async function getExistingClassCount(iscnPrefix) {
   const iscnQueryClient = await getISCNQueryClient();
   const cosmosQueryClient = await iscnQueryClient.getQueryClient();
-  const { classes } = await cosmosQueryClient.likenft.classesByISCN(iscnPrefix)
-  return classes.length;
+  try {
+    const { classes } = await cosmosQueryClient.likenft.classesByISCN(iscnPrefix)
+    return classes.length;
+  } catch (error) {
+    if (error.message === 'Query failed with (18): rpc error: code = InvalidArgument desc = not found: invalid request') {
+      return 0;
+    } else {
+      throw error;
+    }
+  }
 }
 
 export function validateISCNPrefix(input) {
@@ -96,7 +104,7 @@ export function validateISCNPrefix(input) {
 
 export async function getToken() {
   try {
-    const aminoSigner = MNEMONIC 
+    const aminoSigner = MNEMONIC
       ? await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
       : await Secp256k1Wallet.fromKey(PRIVATE_KEY, 'like');
     const [firstAccount] = await aminoSigner.getAccounts();
