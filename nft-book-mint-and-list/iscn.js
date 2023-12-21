@@ -4,6 +4,7 @@ import { Secp256k1HdWallet, Secp256k1Wallet } from '@cosmjs/amino';
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
 import jsonStringify from 'fast-json-stable-stringify'
+import jwt from 'jsonwebtoken';
 
 import {
   LIKE_CO_API,
@@ -145,7 +146,7 @@ export async function getToken() {
       }
       const { data } = await axios.post(`${LIKE_CO_API}/wallet/authorize`, authorizingPayload);
       ({ token } = data);
-      expiredAt = ts + 1000 * 60 * 60;
+      expiredAt = jwt.decode(token).exp * 1000;
     } catch (error) {
       console.error('Cannot get token');
       throw error;
