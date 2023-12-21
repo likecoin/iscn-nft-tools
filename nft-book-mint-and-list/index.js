@@ -60,8 +60,9 @@ async function findListing(classId) {
   }
 }
 
-async function createListing(classId, payload, token, retryTime = 2) {
+async function createListing(classId, payload, retryTime = 2) {
   try {
+    const token = await getToken();
     const { data } = await axios.post(`${LIKE_CO_API}/likernft/book/store/${classId}/new`, payload, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -75,7 +76,7 @@ async function createListing(classId, payload, token, retryTime = 2) {
     }
     console.error(`Retry creating listing of ${classId} in 6s`);
     await sleep(6000);
-    return createListing(classId, payload, token, retryTime - 1);
+    return createListing(classId, payload, retryTime - 1);
   }
 }
 
@@ -114,8 +115,6 @@ async function run() {
   const signerData = await getSignerData();
   const { accountNumber, chainId } = signerData;
   let { sequence } = signerData;
-
-  const token = await getToken();
 
   const records = readCSV(filename);
   for (const record of records) {
@@ -227,7 +226,7 @@ async function run() {
       if (NOTIFICATION_EMAILS.length) newBookListingPayload.notificationEmails = NOTIFICATION_EMAILS;
       if (CONNECTED_WALLETS.length) newBookListingPayload.connectedWallets = CONNECTED_WALLETS;
 
-      await createListing(classId, newBookListingPayload, token);
+      await createListing(classId, newBookListingPayload);
       console.log(name, `${LIKER_LAND_URL}/nft/class/${classId}`);
       
       record.classId = classId;

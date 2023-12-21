@@ -19,6 +19,8 @@ let signingAddress;
 let iscnQueryClient;
 let iscnSigningClient;
 let signingStargateClient;
+let token;
+let expiredAt;
 
 async function getWallet() {
   if (!MNEMONIC && !PRIVATE_KEY) throw new Error('Need MNEMONIC or PRIVATE_KEY');
@@ -103,47 +105,51 @@ export function validateISCNPrefix(input) {
 }
 
 export async function getToken() {
-  try {
-    const aminoSigner = MNEMONIC
-      ? await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
-      : await Secp256k1Wallet.fromKey(PRIVATE_KEY, 'like');
-    const [firstAccount] = await aminoSigner.getAccounts();
-    const { address } = firstAccount;
-    const ts = Date.now()
-    const payload = JSON.stringify({
-      action: 'authorize',
-      permissions: ['read:nftbook', 'write:nftbook'],
-      likeWallet: address,
-      ts
-    });
-    const signingPayload = {
-      chain_id: CHAIN_ID,
-      memo: payload,
-      msgs: [],
-      fee: {
-        gas: '0',
-        amount: [
-          {
-            denom: DENOM,
-            amount: '0'
-          }
-        ]
-      },
-      sequence: '0',
-      account_number: '0'
+  const ts = Date.now();
+  if (!token || ts > expiredAt) {
+    try {
+      const aminoSigner = MNEMONIC
+        ? await Secp256k1HdWallet.fromMnemonic(MNEMONIC, { prefix: 'like' })
+        : await Secp256k1Wallet.fromKey(PRIVATE_KEY, 'like');
+      const [firstAccount] = await aminoSigner.getAccounts();
+      const { address } = firstAccount;
+      const payload = JSON.stringify({
+        action: 'authorize',
+        permissions: ['read:nftbook', 'write:nftbook'],
+        likeWallet: address,
+        ts
+      });
+      const signingPayload = {
+        chain_id: CHAIN_ID,
+        memo: payload,
+        msgs: [],
+        fee: {
+          gas: '0',
+          amount: [
+            {
+              denom: DENOM,
+              amount: '0'
+            }
+          ]
+        },
+        sequence: '0',
+        account_number: '0'
+      }
+      const { signed, signature } = await aminoSigner.signAmino(address, signingPayload)
+      const authorizingPayload = {
+        wallet: address,
+        signature: signature.signature,
+        publicKey: signature.pub_key.value,
+        message: jsonStringify(signed),
+        signMethod: 'memo'
+      }
+      const { data } = await axios.post(`${LIKE_CO_API}/wallet/authorize`, authorizingPayload);
+      ({ token } = data);
+      expiredAt = ts + 1000 * 60 * 60;
+    } catch (error) {
+      console.error('Cannot get token');
+      throw error;
     }
-    const { signed, signature } = await aminoSigner.signAmino(address, signingPayload)
-    const authorizingPayload = {
-      wallet: address,
-      signature: signature.signature,
-      publicKey: signature.pub_key.value,
-      message: jsonStringify(signed),
-      signMethod: 'memo'
-    }
-    const { data } = await axios.post(`${LIKE_CO_API}/wallet/authorize`, authorizingPayload);
-    return data.token;
-  } catch (error) {
-    console.error('Cannot get token');
-    throw error;
   }
+  return token;
 }
