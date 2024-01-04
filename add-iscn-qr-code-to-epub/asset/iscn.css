@@ -3,51 +3,28 @@ body {
   flex-direction: column;
   height: 100vh;
   font-family: sans-serif;
+  text-align: center;
 }
 
-main {
+#iscn-page-body {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   flex-grow: 1;
   padding: 0.5em 2vw 4em;
 }
 
-footer {
+#iscn-page-footer {
   border-top: 1px solid #ccc;
   padding: 0.5em;
 }
 
-#iscn-page-book-info {
-  margin-top: 16px;
-  font-size: 0.8em;
-}
-
-#iscn-page-book-info > div {
-  display: flex;
-}
-
-#iscn-page-book-info > div > b,
-#iscn-page-book-info > div > span {
-  padding: 0.25em 2vw;
-  vertical-align: top;
-}
-
-#iscn-page-book-info > div > span {
-  text-align: left;
-  white-space: nowrap;
-}
-
 #iscn-qr-code {
-  display: block;
   margin-top: 0.5em;
 }
 
 #iscn-prefix {
+  font-size: 0.75em;
   font-family: monospace;
   word-break: break-all;
-}
-
-#depub-disclaimer {
-  text-align: center;
 }
