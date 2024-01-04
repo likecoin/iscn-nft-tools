@@ -139,11 +139,11 @@ function readInfoMap(opf$) {
  * @param {string} htmlToAppend
  */
 function addBookInfo(xhtml$, infoItemMap) {
-  const div = xhtml$('body table#iscn-page-book-info');
+  const div = xhtml$('#iscn-page-book-info');
   const itemsString = [...infoItemMap]
     .filter(([key, value]) => key && value)
     .map(([key, value]) => (
-      `    <tr><th>${key}: </th><td>${value}</td></tr>\n`
+      `    <div><b>${key}: </b><span>${value}</span></div>\n`
     ))
     .join('');
   div.prepend(itemsString);

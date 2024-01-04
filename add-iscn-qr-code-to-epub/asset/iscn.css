@@ -23,13 +23,17 @@ footer {
   font-size: 0.8em;
 }
 
-#iscn-page-book-info th,
-#iscn-page-book-info td {
+#iscn-page-book-info > div {
+  display: flex;
+}
+
+#iscn-page-book-info > div > b,
+#iscn-page-book-info > div > span {
   padding: 0.25em 2vw;
   vertical-align: top;
 }
 
-#iscn-page-book-info th {
+#iscn-page-book-info > div > span {
   text-align: left;
   white-space: nowrap;
 }
