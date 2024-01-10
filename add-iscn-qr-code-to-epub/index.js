@@ -176,9 +176,17 @@ async function zipToEpub(folderPath, outputPath) {
     });
     archive.pipe(output);
     // mimetype must be the first file and must not be compressed
-    archive.append(fs.createReadStream(`${folderPath}/mimetype`), { name: 'mimetype', store: true });
-    archive.directory(`${folderPath}/META-INF`, 'META-INF');
-    archive.directory(`${folderPath}/OEBPS`, 'OEBPS');
+    archive.file(`${folderPath}/mimetype`, { name: 'mimetype', store: true });
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+      if (file === 'mimetype') continue; // skip mimetype
+      const filePath = `${folderPath}/${file}`;
+      if (fs.lstatSync(filePath).isDirectory()) {
+        archive.directory(filePath, file);
+      } else {
+        archive.file(filePath, { name: file });
+      }
+    }
     archive.finalize();
   });
 }
@@ -195,7 +203,11 @@ async function injectISCNQRCodePage(epubPath, iscnPrefix, outputFolder = OUTPUT_
   try {
     // create QR code
     const canvas = await createQRCodeCanvas(iscnPrefix);
-    const oebpsPath = `${unzippedFolderPath}/OEBPS`;
+    let oebpsPath = `${unzippedFolderPath}/OEBPS`;
+    if (!fs.existsSync(oebpsPath)) {
+      // fallback to unzipped folder
+      oebpsPath = `${unzippedFolderPath}`;
+    }
     await saveCanvas(canvas, `${oebpsPath}/${ISCNQRCodePNG}`);
 
     // read and update content.opf
