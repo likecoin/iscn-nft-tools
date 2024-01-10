@@ -24,7 +24,11 @@ const ISCN_LOGO_IMG = 'iscn-logo.svg';
 const ISCN_XHTML = 'iscn.xhtml';
 const ISCN_CSS = 'iscn.css';
 const ISCN_LIST_CSV = `list.csv`;
-const ISCNQRCodePNG = 'iscn-qr-code.png';
+const ISCN_QR_CODE_PNG = 'iscn-qr-code.png';
+const CHEER_IO_OPTIONS = {
+  xmlMode: true,
+  decodeEntities: false,
+};
 
 function getISCNPrefix(input) {
   const res = /^(iscn:\/\/likecoin-chain\/[A-Za-z0-9-_]+)(?:\/([0-9]*))?$/.exec(input);
@@ -176,9 +180,17 @@ async function zipToEpub(folderPath, outputPath) {
     });
     archive.pipe(output);
     // mimetype must be the first file and must not be compressed
-    archive.append(fs.createReadStream(`${folderPath}/mimetype`), { name: 'mimetype', store: true });
-    archive.directory(`${folderPath}/META-INF`, 'META-INF');
-    archive.directory(`${folderPath}/OEBPS`, 'OEBPS');
+    archive.file(`${folderPath}/mimetype`, { name: 'mimetype', store: true });
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+      if (file === 'mimetype') continue; // skip mimetype
+      const filePath = `${folderPath}/${file}`;
+      if (fs.lstatSync(filePath).isDirectory()) {
+        archive.directory(filePath, file);
+      } else {
+        archive.file(filePath, { name: file });
+      }
+    }
     archive.finalize();
   });
 }
@@ -195,17 +207,19 @@ async function injectISCNQRCodePage(epubPath, iscnPrefix, outputFolder = OUTPUT_
   try {
     // create QR code
     const canvas = await createQRCodeCanvas(iscnPrefix);
-    const oebpsPath = `${unzippedFolderPath}/OEBPS`;
-    await saveCanvas(canvas, `${oebpsPath}/${ISCNQRCodePNG}`);
+
+    const metaInfoPath = `${unzippedFolderPath}/META-INF/container.xml`;
+    const metaInfoString = fs.readFileSync(metaInfoPath, 'utf-8');
+    const metaInfo$ = load(metaInfoString, CHEER_IO_OPTIONS);
+    const opfSubPath = metaInfo$('rootfile').attr('full-path');
+    const opfPath = `${unzippedFolderPath}/${opfSubPath}`;
+    const oebpsPath = path.dirname(opfPath);
+    await saveCanvas(canvas, `${oebpsPath}/${ISCN_QR_CODE_PNG}`);
 
     // read and update content.opf
-    const opfPath = `${oebpsPath}/content.opf`;
     const opfString = fs.readFileSync(opfPath, 'utf-8');
-    const opf$ = load(opfString, {
-      xmlMode: true,
-      decodeEntities: false,
-    });
-    updateContentOPF(opf$, ISCN_XHTML, ISCNQRCodePNG);
+    const opf$ = load(opfString, CHEER_IO_OPTIONS);
+    updateContentOPF(opf$, ISCN_XHTML, ISCN_QR_CODE_PNG);
     const infoMap = readInfoMap(opf$);
     const updatedOpfString = opf$.xml();
     fs.writeFileSync(opfPath, updatedOpfString, 'utf-8');
@@ -217,10 +231,7 @@ async function injectISCNQRCodePage(epubPath, iscnPrefix, outputFolder = OUTPUT_
     const iscnXHTMLPath = `${oebpsPath}/${ISCN_XHTML}`;
     fs.copyFileSync(`${ASSET_FOLDER}/${ISCN_XHTML}`, iscnXHTMLPath);
     const iscnXHTMLString = fs.readFileSync(iscnXHTMLPath, 'utf-8');
-    const iscnXHTML$ = load(iscnXHTMLString, {
-      xmlMode: true,
-      decodeEntities: false,
-    });
+    const iscnXHTML$ = load(iscnXHTMLString, CHEER_IO_OPTIONS);
     addBookInfo(iscnXHTML$, infoMap);
     setISCNLink(iscnXHTML$, iscnPrefix);
     addFooterDisclaimer(iscnXHTML$);
