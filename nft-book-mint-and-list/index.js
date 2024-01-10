@@ -8,6 +8,7 @@ import { calculateNFTClassIdByISCNId } from '@likecoin/iscn-js/dist/nft/nftId.js
 import {
   getAddress,
   getISCNQueryClient,
+  populateCreateRoyaltyConfigMsg,
   getISCNSigningClient,
   getSequence,
   getExistingClassCount,
@@ -155,6 +156,7 @@ async function run() {
         }
       };
       const newClassMsg = formatMsgNewClass(address, iscnPrefix, nftClassData);
+      const createRoyaltyConfigMsg = await populateCreateRoyaltyConfigMsg(iscnPrefix, classId, address);
 
       const mapNFTData = (i) => ({
         id: `${NFT_PREFIX}-${i.toString().padStart(4, '0')}`,
@@ -166,7 +168,11 @@ async function run() {
       });
       const mintNFTMsgs = Array.from({ length: mintCount }, (_, i) => i)
         .map(i => formatMsgMintNFT(address, classId, mapNFTData(i)));
-      const messages = [newClassMsg, ...mintNFTMsgs];
+      const messages = [
+        newClassMsg,
+        createRoyaltyConfigMsg,
+        ...mintNFTMsgs,
+      ];
       const iscnSigningClient = await getISCNSigningClient();
 
       async function retrySendMessages() {
@@ -228,7 +234,7 @@ async function run() {
 
       await createListing(classId, newBookListingPayload);
       console.log(name, `${LIKER_LAND_URL}/nft/class/${classId}`);
-      
+
       record.classId = classId;
       updateCSV(records, filename);
     } catch (error) {
