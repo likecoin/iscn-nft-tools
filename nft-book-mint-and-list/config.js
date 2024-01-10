@@ -5,6 +5,9 @@ export const APP_LIKE_CO_URL = IS_TESTNET ? 'https://app.rinkeby.like.co' : 'htt
 export const LIKER_LAND_URL = IS_TESTNET ? 'https://rinkeby.liker.land' : 'https://liker.land';
 export const DENOM = IS_TESTNET ? 'nanoekil' : 'nanolike';
 export const CHAIN_ID = IS_TESTNET ? 'likecoin-testnet-5' : 'likecoin-mainnet-2';
+export const LIKER_NFT_FEE_WALLET = IS_TESTNET
+  ? 'like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp'
+  : 'like10ywsmztkxjl55xarxnhlxwc83z9v2hkxtsajwl'
 
 export const DEFAULT_CSV = 'list.csv';
 export const GAS_PRICE = 10000;

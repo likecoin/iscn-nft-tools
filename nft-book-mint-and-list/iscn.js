@@ -1,8 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import axios from 'axios';
+import Long from 'long';
 import { Secp256k1HdWallet, Secp256k1Wallet } from '@cosmjs/amino';
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
+import { parseAndCalculateStakeholderRewards } from '@likecoin/iscn-js/dist/iscn/parsing.js'
+import { formatMsgCreateRoyaltyConfig } from '@likecoin/iscn-js/dist/messages/likenft.js';
 import jsonStringify from 'fast-json-stable-stringify'
 import jwt from 'jsonwebtoken';
 
@@ -11,9 +14,14 @@ import {
   LIKECOIN_CHAIN_RPC_URL,
   CHAIN_ID,
   DENOM,
+  LIKER_NFT_FEE_WALLET,
   MNEMONIC,
   PRIVATE_KEY,
 } from './config.js';
+
+const ROYALTY_RATE_BASIS_POINTS = 1000; // 10%
+const ROYALTY_FEE_AMOUNT = 25000; // 2.5%
+const ROYALTY_USER_AMOUNT = 1000000 - ROYALTY_FEE_AMOUNT;
 
 let signingWallet;
 let signingAddress;
@@ -52,6 +60,35 @@ export async function getISCNQueryClient() {
     iscnQueryClient = pendingClient;
   }
   return iscnQueryClient;
+}
+
+async function getISCNData(iscnPrefix) {
+  const iscnQueryClient = await getISCNQueryClient();
+  const iscnData = await iscnQueryClient.queryRecordsById(iscnPrefix)
+  return iscnData;
+}
+
+export async function populateCreateRoyaltyConfigMsg(iscnPrefix, classId, address) {
+  const iscnData = await getISCNData(iscnPrefix);
+  const rewardMap = await parseAndCalculateStakeholderRewards(
+    iscnData.records[0].data,
+    iscnData.owner,
+    {
+      precision: 0,
+      totalAmount: ROYALTY_USER_AMOUNT,
+    }
+  );
+  const stakeholders = Array.from(rewardMap.entries())
+    .map(([account, { amount }]) => ({ account, weight: Long.fromNumber(amount) }));
+  stakeholders.push({
+    account: LIKER_NFT_FEE_WALLET,
+    weight: Long.fromNumber(ROYALTY_FEE_AMOUNT),
+  });
+  const msg = formatMsgCreateRoyaltyConfig(address, classId, {
+    rateBasisPoints: Long.fromNumber(ROYALTY_RATE_BASIS_POINTS),
+    stakeholders,
+  });
+  return msg;
 }
 
 export async function getISCNSigningClient() {
