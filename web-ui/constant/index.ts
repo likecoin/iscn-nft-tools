@@ -23,7 +23,7 @@ export const ARWEAVE_ENDPOINT = 'https://arweave.net'
 
 export const IPFS_VIEW_GATEWAY_URL = 'https://ipfs.io/ipfs'
 
-export const CHAIN_EXPLORER_URL = IS_TESTNET ? 'https://node.testnet.like.co/cosmos/tx/v1beta1/txs' : 'https://www.mintscan.io/likecoin/txs'
+export const CHAIN_EXPLORER_URL = IS_TESTNET ? 'https://node.testnet.like.co/cosmos/tx/v1beta1/txs' : 'https://ping.pub/likecoin/tx'
 
 export const NFT_MARKETPLACE_URL = IS_TESTNET ? 'https://likecoin-nft-marketplace-testnet.netlify.app' : 'https://likecoin.github.io/likecoin-nft-marketplace'
 
