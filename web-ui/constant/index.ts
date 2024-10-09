@@ -1,5 +1,7 @@
 export const IS_TESTNET = false
 
+export const DENOM = IS_TESTNET ? 'nanoekil' : 'nanolike'
+
 export const CHAIN_ID = IS_TESTNET
   ? 'likecoin-public-testnet-5'
   : 'likecoin-chain-2'

@@ -1,6 +1,11 @@
 <template>
   <ul>
     <li>
+      <NuxtLink :to="{ name: 'send-like' }">
+        Send LIKE
+      </NuxtLink>
+    </li>
+    <li>
       <NuxtLink :to="{ name: 'mint-nft' }">
         Mint NFT
       </NuxtLink>
