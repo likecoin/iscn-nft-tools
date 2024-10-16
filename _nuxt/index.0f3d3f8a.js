@@ -1,1 +1,0 @@
-const s="https://mainnet-node.like.co/rpc/",n="https://mainnet-node.like.co",t="liker.land",o="like10ywsmztkxjl55xarxnhlxwc83z9v2hkxtsajwl",i="https://app.like.co",c=`https://${t}`,L="https://ping.pub/likecoin/tx",_="https://likecoin.github.io/likecoin-nft-marketplace",a="https://likecoin.github.io/iscn-browser/";export{i as A,L as C,a as I,c as L,_ as N,s as R,n as a,o as b};
