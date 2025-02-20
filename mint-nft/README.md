@@ -131,7 +131,7 @@ The values of the data files overrides each other in the order: `nfts.csv` > `nf
 | metadata → message | The “creator message” that is appended to every NFT in the same class |
 | metadata → nft_meta_collection_id | NFT category, e.g.: nft_book, nft_mail, nft_photo, nft_illustration etc.  Liker Land use this field to decide which section the NFT is displayed. |
 | metadata → nft_meta_collection_name | NFT category name |
-| metadata → nft_meta_collection_descrption | NFT category description |
+| metadata → nft_meta_collection_description | NFT category description |
 
 <br>
 
