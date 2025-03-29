@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { TimeoutError } from '@cosmjs/stargate';
 import { ISCNQueryClient, ISCNSigningClient } from '@likecoin/iscn-js';
@@ -98,50 +99,79 @@ async function run() {
       : await DirectSecp256k1Wallet.fromKey(Buffer.from(PRIVATE_KEY, 'hex'), 'like');
     const [firstAccount] = await signer.getAccounts();
 
-    const nftsDataObject = {};
-    const nftCountObject = data.reduce((object, item) => {
-      // eslint-disable-next-line no-param-reassign
-      object[item.classId] = (object[item.classId] || 0) + 1;
-      return object;
-    }, {});
-    const nftIdObject = data.reduce((object, item) => {
-      if (item.nftId) {
+    // 依據不同的發送地址分組
+    const groupedByFromAddress = data.reduce((groups, item) => {
+      const fromAddress = item.from_address || firstAccount.address;
+      if (!groups[fromAddress]) {
         // eslint-disable-next-line no-param-reassign
-        object[item.classId] = object[item.classId] || [];
-        object[item.classId].push(item.nftId);
+        groups[fromAddress] = [];
       }
-      return object;
+      groups[fromAddress].push(item);
+      return groups;
     }, {});
 
+    const nftsDataObject = {};
     let hasError = false;
-    for (let i = 0; i < Object.keys(nftCountObject).length; i += 1) {
-      const classId = Object.keys(nftCountObject)[i];
-      const needCount = nftCountObject[classId];
-      const { nfts } = await getNFTs({
-        classId,
-        owner: firstAccount.address,
-        needCount,
-      });
-      nftsDataObject[classId] = nfts;
-      if (needCount > nftsDataObject[classId].length) {
-        hasError = true;
-        // eslint-disable-next-line no-console
-        console.log(`NFT classId: ${classId} (own quantity: ${nftsDataObject[classId].length}), Will send ${needCount} counts, NFT not enough!`);
-      }
-      if (nftIdObject[classId]) {
-        for (let j = 0; j < nftIdObject[classId].length; j += 1) {
-          const { nftId } = nftIdObject[classId][j];
-          const { owner } = await getNFTOwner(classId, nftId);
-          if (owner !== firstAccount.address) {
-            throw new Error(`NFT classId: ${classId} nftId:${nftId} is not owned by sender!`);
-          }
+
+    // 檢查每個發送地址的 NFT 持有量
+    for (const [fromAddress, items] of Object.entries(groupedByFromAddress)) {
+      // 計算每個 classId 需要的 NFT 數量
+      const addressNftCountObject = items.reduce((object, item) => {
+        // eslint-disable-next-line no-param-reassign
+        object[item.classId] = (object[item.classId] || 0) + 1;
+        return object;
+      }, {});
+
+      // 收集每個 classId 指定的 nftId
+      const addressNftIdObject = items.reduce((object, item) => {
+        if (item.nftId) {
+          // eslint-disable-next-line no-param-reassign
+          object[item.classId] = object[item.classId] || [];
+          object[item.classId].push(item.nftId);
         }
-        nftsDataObject[classId] = nftsDataObject[classId]
-          .filter((nft) => !nftIdObject[classId].includes(nft.id));
-      }
-      if (!hasError) {
-        // eslint-disable-next-line no-console
-        console.log(`NFT classId: ${classId}, Will send ${needCount} counts, data ok!`);
+        return object;
+      }, {});
+
+      // 檢查每個 classId 的 NFT 持有量
+      for (const classId of Object.keys(addressNftCountObject)) {
+        const needCount = addressNftCountObject[classId];
+
+        // 獲取該地址持有的 NFT
+        if (!nftsDataObject[fromAddress]) {
+          nftsDataObject[fromAddress] = {};
+        }
+
+        const { nfts } = await getNFTs({
+          classId,
+          owner: fromAddress,
+          needCount,
+        });
+
+        nftsDataObject[fromAddress][classId] = nfts;
+
+        if (needCount > nfts.length) {
+          hasError = true;
+          // eslint-disable-next-line no-console
+          console.log(`NFT classId: ${classId} (owner: ${fromAddress}, quantity: ${nfts.length}), Will send ${needCount} counts, NFT not enough!`);
+        }
+
+        if (addressNftIdObject[classId]) {
+          for (let j = 0; j < addressNftIdObject[classId].length; j += 1) {
+            const nftId = addressNftIdObject[classId][j];
+            const { owner } = await getNFTOwner(classId, nftId);
+            if (owner !== fromAddress) {
+              throw new Error(`NFT classId: ${classId} nftId:${nftId} is not owned by ${fromAddress}!`);
+            }
+          }
+
+          nftsDataObject[fromAddress][classId] = nftsDataObject[fromAddress][classId]
+            .filter((nft) => !addressNftIdObject[classId].includes(nft.id));
+        }
+
+        if (!hasError) {
+          // eslint-disable-next-line no-console
+          console.log(`NFT classId: ${classId}, Owner: ${fromAddress}, Will send ${needCount} counts, data ok!`);
+        }
       }
     }
 
@@ -165,17 +195,42 @@ async function run() {
     let currentSequence = sequence;
     for (let i = 0; i < data.length; i += 1) {
       const e = data[i];
+      const fromAddress = e.from_address || firstAccount.address;
       let targetNftId = e.nftId;
+
       if (!targetNftId) {
-        const removed = nftsDataObject[e.classId].splice(0, 1);
+        const removed = nftsDataObject[fromAddress][e.classId].splice(0, 1);
         targetNftId = removed[0].id;
       }
-      const msgSend = formatMsgSend(
-        firstAccount.address,
-        e.address,
-        e.classId,
-        targetNftId,
-      );
+
+      let msgSend;
+      if (fromAddress !== firstAccount.address) {
+        // 如果 from_address 不是 firstAccount.address，使用 formatMsgAuthzExecSend
+        msgSend = {
+          typeUrl: '/cosmos.authz.v1beta1.MsgExec',
+          value: {
+            grantee: firstAccount.address,
+            msgs: [{
+              typeUrl: '/cosmos.nft.v1beta1.MsgSend',
+              value: formatMsgSend(
+                fromAddress,
+                e.to_address,
+                e.classId,
+                targetNftId,
+              ),
+            }],
+          },
+        };
+      } else {
+        // 如果 from_address 是 firstAccount.address 或未設定，使用原本的 formatMsgSend
+        msgSend = formatMsgSend(
+          fromAddress,
+          e.to_address,
+          e.classId,
+          targetNftId,
+        );
+      }
+
       if (hasCsvMemo) {
         const tx = await client.sign(
           firstAccount.address,
