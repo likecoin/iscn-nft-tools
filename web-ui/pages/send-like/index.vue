@@ -55,7 +55,6 @@
 import { storeToRefs } from 'pinia'
 import { parse } from 'csv-parse/sync'
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx.js'
-import { stringify } from 'csv-stringify/sync'
 
 import { BigNumber } from 'bignumber.js'
 import { useWalletStore } from '~/stores/wallet'
