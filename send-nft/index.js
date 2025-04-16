@@ -7,6 +7,7 @@ import neatCsv from 'neat-csv';
 import BigNumber from 'bignumber.js';
 /* eslint-disable import/extensions */
 import { formatMsgSend } from '@likecoin/iscn-js/dist/messages/likenft.js';
+import { MsgSend } from 'cosmjs-types/cosmos/nft/v1beta1/tx';
 import { PageRequest } from 'cosmjs-types/cosmos/base/query/v1beta1/pagination.js';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx.js';
 /* eslint-enable import/extensions */
@@ -212,12 +213,14 @@ async function run() {
             grantee: firstAccount.address,
             msgs: [{
               typeUrl: '/cosmos.nft.v1beta1.MsgSend',
-              value: formatMsgSend(
-                fromAddress,
-                e.to_address,
-                e.classId,
-                targetNftId,
-              ),
+              value: MsgSend.encode(
+                MsgSend.fromPartial({
+                  sender: fromAddress,
+                  receiver: e.to_address,
+                  classId: e.classId,
+                  id: targetNftId,
+                }),
+              ).finish(),
             }],
           },
         };

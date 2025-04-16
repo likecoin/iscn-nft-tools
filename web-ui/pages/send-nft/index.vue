@@ -92,6 +92,7 @@ import { TimeoutError } from '@cosmjs/stargate'
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
 import { stringify } from 'csv-stringify/sync'
 
+import { MsgSend } from 'cosmjs-types/cosmos/nft/v1beta1/tx'
 import { getNFTs, getNFTOwner, getSigningClientWithSigner, getGasFee } from '~/utils/cosmos'
 import { useWalletStore } from '~/stores/wallet'
 
@@ -249,12 +250,14 @@ async function onSendNFTStart () {
             grantee: wallet.value,
             msgs: [{
               typeUrl: '/cosmos.nft.v1beta1.MsgSend',
-              value: formatMsgSend(
-                fromAddress,
-                e.to_address,
-                e.classId,
-                targetNftId
-              )
+              value: MsgSend.encode(
+                MsgSend.fromPartial({
+                  sender: fromAddress,
+                  receiver: e.to_address,
+                  classId: e.classId,
+                  id: targetNftId
+                })
+              ).finish()
             }]
           }
         }
