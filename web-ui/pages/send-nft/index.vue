@@ -247,15 +247,12 @@ async function onSendNFTStart () {
           typeUrl: '/cosmos.authz.v1beta1.MsgExec',
           value: {
             grantee: wallet.value,
-            msgs: [{
-              typeUrl: '/cosmos.nft.v1beta1.MsgSend',
-              value: formatMsgSend(
-                fromAddress,
-                e.to_address,
-                e.classId,
-                targetNftId
-              )
-            }]
+            msgs: [formatMsgSend(
+              fromAddress,
+              e.to_address,
+              e.classId,
+              targetNftId
+            )]
           }
         }
       } else {
